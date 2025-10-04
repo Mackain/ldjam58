@@ -81,6 +81,8 @@ let isGamePaused = false;
 let pauseTimer = 0;
 let handshakeAnimationCreated = false;
 let sidescrollerAnimationsCreated = false;
+let isCollisionImmune = false;
+let immunityTimer = 0;
 
 function preload() {
 	// Load assets here
@@ -574,6 +576,8 @@ function setupSidescrollerUI() {
 	obstacleSpawnTimer = 0;
 	isGamePaused = false;
 	pauseTimer = 0;
+	isCollisionImmune = false;
+	immunityTimer = 0;
 	
 	// Create background (simple color for now)
 	scene.add.rectangle(400, 300, 800, 600, 0x87CEEB); // Sky blue
@@ -688,6 +692,14 @@ function updateSidescroller() {
 		return; // Don't update game logic while paused
 	}
 	
+	// Handle collision immunity timer
+	if (isCollisionImmune) {
+		immunityTimer--;
+		if (immunityTimer <= 0) {
+			isCollisionImmune = false;
+		}
+	}
+	
 	// Handle jumping physics
 	if (isJumping) {
 		sidescrollerPlayer.y += jumpVelocity;
@@ -775,11 +787,18 @@ function updateSidescroller() {
 		
 		// Check collision with player
 		else if (checkCollision(sidescrollerPlayer, obstacle)) {
-			if (obstacle.obstacleType === 'haystack') {
+			if (obstacle.obstacleType === 'haystack' && !isCollisionImmune) {
 				// Return to map - game over
 				exitToMinimap();
 			} else if (obstacle.obstacleType === 'pesant') {
 				isPesantInGame = false;
+				// Reset player to ground level (even if jumping)
+				sidescrollerPlayer.y = groundY - 45;
+				isJumping = false;
+				jumpVelocity = 0;
+				// Set collision immunity for 1 second (60 frames at 60fps)
+				isCollisionImmune = true;
+				immunityTimer = 60;
 				// Start handshake sequence
 				startHandshakeSequence();
 				// Remove the pesant
