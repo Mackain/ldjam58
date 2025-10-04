@@ -23,9 +23,9 @@ const config = {
 const game = new Phaser.Game(config);
 
 // Game variables
-let playerWallet = 1000;
-let currentBid = 50;
-let playerBid = 50;
+let playerWallet = 500;
+let currentBid = 10;
+let playerBid = 20;
 
 // Game stage management
 let currentStage = 'minimap'; // Start with minimap instead of bidding
@@ -33,7 +33,7 @@ let inputHandlers = {};
 let activeInputHandler = null;
 
 // Minimap variables
-let player;
+let greve;
 let auctionZone;
 let minimapElements = [];
 
@@ -47,7 +47,9 @@ let bidButton;
 
 function preload() {
 	// Load assets here
-	this.load.image('player', 'images/greve1.png');
+	this.load.image('greve1', 'images/greve1.png');
+	this.load.image('greve2', 'images/greve2.png');
+	this.load.image('greve3', 'images/greve3.png');
 }
 
 function create() {
@@ -68,50 +70,40 @@ function update(time, delta) {
 	}
 }
 
-// Bidding functions
-function increaseBid() {
-	if (playerBid + 10 <= playerWallet) {
-		playerBid += 10;
-		playerBidText.setText(`$${playerBid}`);
-	}
-}
-
-function decreaseBid() {
-	if (playerBid > 10) {
-		playerBid -= 10;
-		playerBidText.setText(`$${playerBid}`);
-	}
-}
-
 function placeBid() {
-	if (playerBid > currentBid && playerBid <= playerWallet) {
-		currentBid = playerBid;
+	// Check if player has enough money to bid $10 more
+	if (playerWallet >= 10) {
+		// Increase current bid by $10
+		currentBid += 10;
 		currentBidText.setText(`$${currentBid}`);
-		playerWallet -= currentBid;
+		playerWallet -= 10;
 		walletText.setText(`Wallet: $${playerWallet}`);
 		
-		// Reset player bid to minimum viable bid
-		playerBid = Math.min(currentBid + 10, playerWallet);
-		if (playerBid <= playerWallet) {
+		// Update player bid display to show next potential bid
+		playerBid = currentBid + 10;
+		if (playerBidText) {
 			playerBidText.setText(`$${playerBid}`);
 		}
 	}
+	botPlaceBid();
+}
+
+function botPlaceBid() {
+	
 }
 
 // Input Handler System
 function setupInputHandlers(scene) {
 	// Minimap stage input handler
 	inputHandlers.minimap = {
-		'UP': () => movePlayer(0, -1),
-		'DOWN': () => movePlayer(0, 1),
-		'LEFT': () => movePlayer(-1, 0),
-		'RIGHT': () => movePlayer(1, 0)
+		'UP': () => { movePlayer(0, -1); startWalkAnimation(); },
+		'DOWN': () => { movePlayer(0, 1); startWalkAnimation(); },
+		'LEFT': () => { movePlayer(-1, 0); startWalkAnimation(); },
+		'RIGHT': () => { movePlayer(1, 0); startWalkAnimation(); }
 	};
 	
 	// Bidding stage input handler
 	inputHandlers.bidding = {
-		'UP': () => increaseBid(),
-		'DOWN': () => decreaseBid(),
 		'SPACE': () => placeBid(),
 		'ENTER': () => placeBid(),
 		'ESC': () => exitToMinimap()
@@ -174,8 +166,28 @@ function setupMinimapUI() {
 	const scene = game.scene.scenes[0];
 	scene.add.rectangle(400, 300, 800, 600, 0x1a4a3a);
 	
-	// Create player (using gre1.png image)
-	player = scene.add.image(100, 100, 'player');
+	// Create player with animation
+	greve = scene.add.sprite(100, 100, 'greve1');
+	
+	// Create walking animation
+	scene.anims.create({
+		key: 'walk',
+		frames: [
+			{ key: 'greve1' },
+			{ key: 'greve2' },
+			{ key: 'greve3' },
+			{ key: 'greve2' }
+		],
+		frameRate: 18,
+		repeat: -1
+	});
+	
+	// Create idle animation (just greve1)
+	scene.anims.create({
+		key: 'idle',
+		frames: [{ key: 'greve1' }],
+		frameRate: 1
+	});
 	
 	// Create auction zone (red square)
 	auctionZone = scene.add.rectangle(600, 400, 80, 80, 0xff4444);
@@ -199,7 +211,7 @@ function setupMinimapUI() {
 		fontFamily: 'Arial'
 	});
 	
-	mimapElements = [player, auctionZone, walletText];
+	mimapElements = [greve, auctionZone, walletText];
 }
 
 function setupBiddingUI() {
@@ -244,28 +256,6 @@ function setupBiddingUI() {
 		fill: '#3498db',
 		fontFamily: 'Arial',
 		fontStyle: 'bold'
-	}).setOrigin(0.5);
-
-	// Decrease button
-	decreaseButton = scene.add.rectangle(250, 540, 80, 40, 0xe74c3c)
-		.setInteractive()
-		.on('pointerdown', () => decreaseBid());
-
-	scene.add.text(250, 540, '-$10', {
-		fontSize: '18px',
-		fill: '#ffffff',
-		fontFamily: 'Arial'
-	}).setOrigin(0.5);
-
-	// Increase button
-	increaseButton = scene.add.rectangle(350, 540, 80, 40, 0x27ae60)
-		.setInteractive()
-		.on('pointerdown', () => increaseBid());
-
-	scene.add.text(350, 540, '+$10', {
-		fontSize: '18px',
-		fill: '#ffffff',
-		fontFamily: 'Arial'
 	}).setOrigin(0.5);
 
 	// Place bid button
@@ -320,16 +310,21 @@ function returnToMenu() {
 
 // Minimap functions
 function movePlayer(deltaX, deltaY) {
-	if (!player) return;
+	if (!greve) return;
 	
 	const speed = 5;
-	const newX = player.x + (deltaX * speed);
-	const newY = player.y + (deltaY * speed);
+	const newX = greve.x + (deltaX * speed);
+	const newY = greve.y + (deltaY * speed);
 	
 	// Keep player within bounds
 	if (newX >= 15 && newX <= 785 && newY >= 15 && newY <= 585) {
-		player.x = newX;
-		player.y = newY;
+		greve.x = newX;
+		greve.y = newY;
+		
+		// Play walking animation
+		if (greve.anims) {
+			greve.anims.play('walk', true);
+		}
 		
 		// Check collision with auction zone
 		checkCollisions();
@@ -337,11 +332,11 @@ function movePlayer(deltaX, deltaY) {
 }
 
 function checkCollisions() {
-	if (!player || !auctionZone) return;
+	if (!greve || !auctionZone) return;
 	
 	// Simple collision detection
 	const distance = Phaser.Math.Distance.Between(
-		player.x, player.y, 
+		greve.x, greve.y, 
 		auctionZone.x, auctionZone.y
 	);
 	
@@ -353,4 +348,21 @@ function checkCollisions() {
 
 function exitToMinimap() {
 	setGameStage('minimap');
+}
+
+// Animation helper functions
+let walkingTimeout;
+
+function startWalkAnimation() {
+	// Clear any existing timeout
+	if (walkingTimeout) {
+		clearTimeout(walkingTimeout);
+	}
+	
+	// Stop walking animation after a short delay
+	walkingTimeout = setTimeout(() => {
+		if (greve && greve.anims) {
+			greve.anims.play('idle');
+		}
+	}, 150); // Stop animation 150ms after last movement
 }
