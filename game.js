@@ -48,9 +48,9 @@ let minimapElements = [];
 
 // Map locations system
 let mapLocations = [
-	{ x: 210, y: 220, name: "Home", minigame: "sidescroller" },
-	{ x: 250, y: 290, name: "Paris", minigame: "bidding" }, // x: 250, y: 290,
-	{ x: 510, y: 530, name: "Giza", minigame: "bidding" }
+	{ x: 235, y: 220, name: "Home", minigame: "sidescroller" },
+	{ x: 270, y: 300, name: "Paris", minigame: "bidding" },
+	{ x: 535, y: 540, name: "Giza", minigame: "bidding" }
 	// Add more locations as needed - you can adjust coordinates based on your map.png
 ];
 let currentLocationIndex = 0;
@@ -80,6 +80,7 @@ let sidescrollerBackground;
 let isGamePaused = false;
 let pauseTimer = 0;
 let handshakeAnimationCreated = false;
+let sidescrollerAnimationsCreated = false;
 
 function preload() {
 	// Load assets here
@@ -96,6 +97,10 @@ function preload() {
 	this.load.image('map', 'images/map.png');
 	this.load.image('greveSkak1', 'images/greveSkak1.png');
 	this.load.image('greveSkak2', 'images/greveSkak2.png');
+	this.load.image('droska1', 'images/droska1.png');
+	this.load.image('droska2', 'images/droska2.png');
+	this.load.image('bonde1', 'images/bonde1.png');
+	this.load.image('bonde2', 'images/bonde2.png');
 }
 
 function create() {
@@ -397,25 +402,23 @@ function setupMinimapUI() {
 	
 	// Create player with animation at first location
 	const firstLocation = mapLocations[currentLocationIndex];
-	greve = scene.add.sprite(firstLocation.x, firstLocation.y, 'greve1');
+	greve = scene.add.sprite(firstLocation.x, firstLocation.y, 'droska1');
 	
 	// Create walking animation
 	scene.anims.create({
 		key: 'walk',
 		frames: [
-			{ key: 'greve1' },
-			{ key: 'greve2' },
-			{ key: 'greve3' },
-			{ key: 'greve2' }
+			{ key: 'droska1' },
+			{ key: 'droska2' }
 		],
-		frameRate: 18,
+		frameRate: 8,
 		repeat: -1
 	});
 	
-	// Create idle animation (just greve1)
+	// Create idle animation (just droska1)
 	scene.anims.create({
 		key: 'idle',
-		frames: [{ key: 'greve1' }],
+		frames: [{ key: 'droska1' }],
 		frameRate: 1
 	});
 	
@@ -440,6 +443,9 @@ function setupMinimapUI() {
 		fill: '#ffffff',
 		fontFamily: 'Arial'
 	});
+	
+	// Start continuous walking animation
+	greve.anims.play('walk', true);
 	
 	mimapElements = [greve, auctionZone, walletText];
 }
@@ -576,8 +582,26 @@ function setupSidescrollerUI() {
 	sidescrollerPlayer = scene.add.sprite(100, groundY - 25, 'greve1');
 	sidescrollerPlayer.setScale(1.5); // Make slightly larger
 	
-	// Start walking animation
-	sidescrollerPlayer.anims.play('walk', true);
+	// Create sidescroller-specific animations if not already created
+	if (!sidescrollerAnimationsCreated) {
+		// Create sidescroller walking animation with greve sequence
+		scene.anims.create({
+			key: 'sidescroller_walk',
+			frames: [
+				{ key: 'greve1' },
+				{ key: 'greve2' },
+				{ key: 'greve3' },
+				{ key: 'greve2' }
+			],
+			frameRate: 18,
+			repeat: -1
+		});
+		
+		sidescrollerAnimationsCreated = true;
+	}
+	
+	// Start with walking animation (auto-runner game)
+	sidescrollerPlayer.anims.play('sidescroller_walk', true);
 	
 	// Create handshake animation if not already created
 	if (!handshakeAnimationCreated) {
@@ -592,6 +616,17 @@ function setupSidescrollerUI() {
 		});
 		handshakeAnimationCreated = true;
 	}
+	
+	// Create bonde animation
+	scene.anims.create({
+		key: 'bonde',
+		frames: [
+			{ key: 'bonde1' },
+			{ key: 'bonde2' }
+		],
+		frameRate: 6,
+		repeat: -1
+	});
 	
 	// Instructions
 	scene.add.text(50, 50, 'Press SPACE or UP to jump over obstacles', {
@@ -702,8 +737,10 @@ function spawnObstacle(scene) {
 }
 
 function spawnPesant(scene) {
-	// Create a simple pesant
-	const pesant = scene.add.rectangle(850, groundY - 15, 30, 30, 0x00FF00); // Green square
+	// Create an animated bonde peasant
+	const pesant = scene.add.sprite(850, groundY - 15, 'bonde1');
+	pesant.setScale(1.2); // Make slightly larger
+	pesant.anims.play('bonde', true); // Start bonde animation
 	pesant.jumpVelocity = -10;
 	pesant.obstacleType = 'pesant'; // Mark as pesant obstacle
 	obstacles.push(pesant);
@@ -723,7 +760,7 @@ function startHandshakeSequence() {
 	isGamePaused = true;
 	pauseTimer = 180; // 3 seconds at 60fps
 	
-	// Stop current animation and start handshake animation
+	// Immediately stop current animation and start handshake animation
 	sidescrollerPlayer.anims.stop();
 	sidescrollerPlayer.anims.play('handshake', true);
 	
@@ -737,9 +774,9 @@ function endHandshakeSequence() {
 	isGamePaused = false;
 	pauseTimer = 0;
 	
-	// Return to walking animation
+	// Return to walking animation (always running)
 	sidescrollerPlayer.anims.stop();
-	sidescrollerPlayer.anims.play('walk', true);
+	sidescrollerPlayer.anims.play('sidescroller_walk', true);
 	
 	console.log('Handshake sequence ended - game resumed');
 }
@@ -849,15 +886,8 @@ function exitToMinimap() {
 let walkingTimeout;
 
 function startWalkAnimation() {
-	// Clear any existing timeout
-	if (walkingTimeout) {
-		clearTimeout(walkingTimeout);
+	// Keep the walking animation running continuously
+	if (greve && greve.anims) {
+		greve.anims.play('walk', true);
 	}
-	
-	// Stop walking animation after a short delay
-	walkingTimeout = setTimeout(() => {
-		if (greve && greve.anims) {
-			greve.anims.play('idle');
-		}
-	}, 150); // Stop animation 150ms after last movement
 }
