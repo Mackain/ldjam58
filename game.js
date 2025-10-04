@@ -48,7 +48,7 @@ let minimapElements = [];
 
 // Map locations system
 let mapLocations = [
-	{ x: 210, y: 220, name: "Home", minigame: "bidding" },
+	{ x: 210, y: 220, name: "Home", minigame: "sidescroller" },
 	{ x: 250, y: 290, name: "Paris", minigame: "bidding" }, // x: 250, y: 290,
 	{ x: 510, y: 530, name: "Giza", minigame: "bidding" }
 	// Add more locations as needed - you can adjust coordinates based on your map.png
@@ -66,6 +66,17 @@ let bidButtonText;
 let auctionBackground;
 let auctionAudience;
 let leadingBidText;
+
+// Sidescroller game variables
+let sidescrollerPlayer;
+let obstacles = [];
+let isJumping = false;
+let jumpVelocity = 0;
+let gravity = 0.8;
+let groundY = 500;
+let gameSpeed = 8;
+let obstacleSpawnTimer = 0;
+let sidescrollerBackground;
 
 function preload() {
 	// Load assets here
@@ -97,6 +108,11 @@ function update(time, delta) {
 	// Update auction timer display
 	if (currentStage === 'bidding' && auctionTimerText) {
 		auctionTimerText.setText(`Time: ${auctionTimer}`);
+	}
+	
+	// Update sidescroller game
+	if (currentStage === 'sidescroller') {
+		updateSidescroller();
 	}
 }
 
@@ -307,6 +323,13 @@ function setupInputHandlers(scene) {
 		'ESC': () => exitToMinimap()
 	};
 	
+	// Sidescroller stage input handler
+	inputHandlers.sidescroller = {
+		'SPACE': () => jump(),
+		'UP': () => jump(),
+		'ESC': () => exitToMinimap()
+	};
+	
 	// Example: Menu stage input handler (for future use)
 	inputHandlers.menu = {
 		'UP': () => navigateMenuUp(),
@@ -353,6 +376,8 @@ function setGameStage(stageName) {
 		setupMinimapUI();
 	} else if (stageName === 'bidding') {
 		setupBiddingUI();
+	} else if (stageName === 'sidescroller') {
+		setupSidescrollerUI();
 	}
 }
 
@@ -531,6 +556,117 @@ function clearUI() {
 	scene.children.removeAll();
 }
 
+// Sidescroller functions
+function setupSidescrollerUI() {
+	clearUI();
+	const scene = game.scene.scenes[0];
+	
+	// Reset game state
+	obstacles = [];
+	isJumping = false;
+	jumpVelocity = 0;
+	obstacleSpawnTimer = 0;
+	
+	// Create background (simple color for now)
+	scene.add.rectangle(400, 300, 800, 600, 0x87CEEB); // Sky blue
+	
+	// Create ground
+	scene.add.rectangle(400, 550, 800, 100, 0x8B4513); // Brown ground
+	
+	// Create player using same sprite as minimap
+	sidescrollerPlayer = scene.add.sprite(100, groundY - 25, 'greve1');
+	sidescrollerPlayer.setScale(1.5); // Make slightly larger
+	
+	// Start walking animation
+	sidescrollerPlayer.anims.play('walk', true);
+	
+	// Instructions
+	scene.add.text(50, 50, 'Press SPACE or UP to jump over obstacles', {
+		fontSize: '16px',
+		fill: '#000000',
+		fontFamily: 'Arial'
+	});
+	
+	// Exit instruction
+	scene.add.text(50, 80, 'Press ESC to return to map', {
+		fontSize: '16px',
+		fill: '#000000',
+		fontFamily: 'Arial'
+	});
+	
+	// Wallet display
+	walletText = scene.add.text(650, 30, `Wallet: $${playerWallet}`, {
+		fontSize: '20px',
+		fill: '#000000',
+		fontFamily: 'Arial'
+	});
+}
+
+function jump() {
+	if (!isJumping && sidescrollerPlayer) {
+		isJumping = true;
+		jumpVelocity = -15; // Negative for upward movement
+	}
+}
+
+function updateSidescroller() {
+	if (currentStage !== 'sidescroller' || !sidescrollerPlayer) return;
+	
+	const scene = game.scene.scenes[0];
+	
+	// Handle jumping physics
+	if (isJumping) {
+		sidescrollerPlayer.y += jumpVelocity;
+		jumpVelocity += gravity;
+		
+		// Check if landed
+		if (sidescrollerPlayer.y >= groundY - 45) {
+			sidescrollerPlayer.y = groundY - 45;
+			isJumping = false;
+			jumpVelocity = 0;
+		}
+	}
+	
+	// Spawn obstacles
+	obstacleSpawnTimer++;
+	if (obstacleSpawnTimer > 120) { // Every 2 seconds at 60fps
+		spawnObstacle(scene);
+		obstacleSpawnTimer = 0;
+	}
+	
+	// Move and check obstacles
+	for (let i = obstacles.length - 1; i >= 0; i--) {
+		const obstacle = obstacles[i];
+		obstacle.x -= gameSpeed;
+		
+		// Remove obstacles that are off screen
+		if (obstacle.x < -50) {
+			obstacle.destroy();
+			obstacles.splice(i, 1);
+		}
+		
+		// Check collision with player
+		else if (checkCollision(sidescrollerPlayer, obstacle)) {
+			console.log('Game Over! You hit an obstacle.');
+			// For now, just return to map - you can add game over logic later
+			exitToMinimap();
+		}
+	}
+}
+
+function spawnObstacle(scene) {
+	// Create a simple square obstacle
+	const obstacle = scene.add.rectangle(850, groundY - 15, 30, 30, 0xFF0000); // Red square
+	obstacles.push(obstacle);
+}
+
+function checkCollision(player, obstacle) {
+	const playerBounds = player.getBounds();
+	const obstacleBounds = obstacle.getBounds();
+	
+	return Phaser.Geom.Rectangle.Overlaps(playerBounds, obstacleBounds);
+}
+
 // Placeholder functions for future stages
 function navigateMenuUp() {
 	console.log('Navigate menu up');
@@ -619,6 +755,8 @@ function enterCurrentLocation() {
 	// Enter the minigame for this location
 	if (location.minigame === 'bidding') {
 		setGameStage('bidding');
+	} else if (location.minigame === 'sidescroller') {
+		setGameStage('sidescroller');
 	}
 	// Add more minigame types as needed
 }
