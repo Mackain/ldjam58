@@ -79,7 +79,7 @@ let obstacleSpawnTimer = 0;
 let sidescrollerBackground;
 let isGamePaused = false;
 let pauseTimer = 0;
-let handshakeAnimationCreated = false;
+let pesantShakeAnimationCreated = false;
 let sidescrollerAnimationsCreated = false;
 let isCollisionImmune = false;
 let immunityTimer = 0;
@@ -610,18 +610,18 @@ function setupSidescrollerUI() {
 	// Start with walking animation (auto-runner game)
 	sidescrollerPlayer.anims.play('sidescroller_walk', true);
 	
-	// Create handshake animation if not already created
-	if (!handshakeAnimationCreated) {
+	// Create pesantShake animation if not already created
+	if (!pesantShakeAnimationCreated) {
 		scene.anims.create({
-			key: 'handshake',
+			key: 'pesantShake',
 			frames: [
 				{ key: 'greveSkak1' },
 				{ key: 'greveSkak2' }
 			],
-			frameRate: 4,
+			frameRate: 12,
 			repeat: -1
 		});
-		handshakeAnimationCreated = true;
+		pesantShakeAnimationCreated = true;
 	}
 	
 	// Create bonde walking animation
@@ -682,7 +682,7 @@ function updateSidescroller() {
 	
 	const scene = game.scene.scenes[0];
 	
-	// Handle pause timer for handshake sequence
+	// Handle pause timer for pesantShake sequence
 	if (isGamePaused) {
 		pauseTimer--;
 		if (pauseTimer <= 0) {
@@ -799,7 +799,7 @@ function updateSidescroller() {
 				// Set collision immunity for 1 second (60 frames at 60fps)
 				isCollisionImmune = true;
 				immunityTimer = 60;
-				// Start handshake sequence
+				// Start pesantShake sequence
 				startHandshakeSequence();
 				// Remove the pesant
 				obstacle.destroy();
@@ -849,9 +849,9 @@ function startHandshakeSequence() {
 	isGamePaused = true;
 	pauseTimer = 180; // 3 seconds at 60fps
 	
-	// Immediately stop current animation and start handshake animation
+	// Immediately stop current animation and start pesantShake animation
 	sidescrollerPlayer.anims.stop();
-	sidescrollerPlayer.anims.play('handshake', true);
+	sidescrollerPlayer.anims.play('pesantShake', true);
 }
 
 function endHandshakeSequence() {
