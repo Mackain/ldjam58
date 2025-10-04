@@ -77,6 +77,9 @@ let groundY = 500;
 let gameSpeed = 8;
 let obstacleSpawnTimer = 0;
 let sidescrollerBackground;
+let isGamePaused = false;
+let pauseTimer = 0;
+let handshakeAnimationCreated = false;
 
 function preload() {
 	// Load assets here
@@ -91,6 +94,8 @@ function preload() {
 	this.load.image('auqhand', 'images/auqhand.png');
 	this.load.image('auqSOLD', 'images/auqSOLD.png');
 	this.load.image('map', 'images/map.png');
+	this.load.image('greveSkak1', 'images/greveSkak1.png');
+	this.load.image('greveSkak2', 'images/greveSkak2.png');
 }
 
 function create() {
@@ -414,14 +419,6 @@ function setupMinimapUI() {
 		frameRate: 1
 	});
 	
-	// Create auction zone (red square)
-	auctionZone = scene.add.rectangle(600, 400, 80, 80, 0xff4444);
-	scene.add.text(600, 400, 'AUCTION', {
-		fontSize: '14px',
-		fill: '#ffffff',
-		fontFamily: 'Arial'
-	}).setOrigin(0.5);
-	
 	// Instructions
 	scene.add.text(50, 50, 'Use arrow keys to navigate, Enter to interact', {
 		fontSize: '16px',
@@ -566,6 +563,8 @@ function setupSidescrollerUI() {
 	isJumping = false;
 	jumpVelocity = 0;
 	obstacleSpawnTimer = 0;
+	isGamePaused = false;
+	pauseTimer = 0;
 	
 	// Create background (simple color for now)
 	scene.add.rectangle(400, 300, 800, 600, 0x87CEEB); // Sky blue
@@ -579,6 +578,20 @@ function setupSidescrollerUI() {
 	
 	// Start walking animation
 	sidescrollerPlayer.anims.play('walk', true);
+	
+	// Create handshake animation if not already created
+	if (!handshakeAnimationCreated) {
+		scene.anims.create({
+			key: 'handshake',
+			frames: [
+				{ key: 'greveSkak1' },
+				{ key: 'greveSkak2' }
+			],
+			frameRate: 4,
+			repeat: -1
+		});
+		handshakeAnimationCreated = true;
+	}
 	
 	// Instructions
 	scene.add.text(50, 50, 'Press SPACE or UP to jump over obstacles', {
@@ -602,6 +615,8 @@ function setupSidescrollerUI() {
 	});
 }
 
+let isPesantInGame = false;
+
 function jump() {
 	if (!isJumping && sidescrollerPlayer) {
 		isJumping = true;
@@ -613,6 +628,16 @@ function updateSidescroller() {
 	if (currentStage !== 'sidescroller' || !sidescrollerPlayer) return;
 	
 	const scene = game.scene.scenes[0];
+	
+	// Handle pause timer for handshake sequence
+	if (isGamePaused) {
+		pauseTimer--;
+		if (pauseTimer <= 0) {
+			// Resume game after 3 seconds (180 frames at 60fps)
+			endHandshakeSequence();
+		}
+		return; // Don't update game logic while paused
+	}
 	
 	// Handle jumping physics
 	if (isJumping) {
@@ -633,6 +658,11 @@ function updateSidescroller() {
 		spawnObstacle(scene);
 		obstacleSpawnTimer = 0;
 	}
+
+	if (obstacleSpawnTimer === 80 && !isPesantInGame) { // Every 2 seconds at 60fps
+		spawnPesant(scene);
+		isPesantInGame = true;
+	}
 	
 	// Move and check obstacles
 	for (let i = obstacles.length - 1; i >= 0; i--) {
@@ -647,9 +677,19 @@ function updateSidescroller() {
 		
 		// Check collision with player
 		else if (checkCollision(sidescrollerPlayer, obstacle)) {
-			console.log('Game Over! You hit an obstacle.');
-			// For now, just return to map - you can add game over logic later
-			exitToMinimap();
+			if (obstacle.obstacleType === 'haystack') {
+				console.log('Game Over! You hit a haystack obstacle.');
+				// Return to map - game over
+				exitToMinimap();
+			} else if (obstacle.obstacleType === 'pesant') {
+				console.log('You touched a pesant - starting handshake!');
+				isPesantInGame = false;
+				// Start handshake sequence
+				startHandshakeSequence();
+				// Remove the pesant
+				obstacle.destroy();
+				obstacles.splice(i, 1);
+			}
 		}
 	}
 }
@@ -657,7 +697,16 @@ function updateSidescroller() {
 function spawnObstacle(scene) {
 	// Create a simple square obstacle
 	const obstacle = scene.add.rectangle(850, groundY - 15, 30, 30, 0xFF0000); // Red square
+	obstacle.obstacleType = 'haystack'; // Mark as haystack obstacle
 	obstacles.push(obstacle);
+}
+
+function spawnPesant(scene) {
+	// Create a simple pesant
+	const pesant = scene.add.rectangle(850, groundY - 15, 30, 30, 0x00FF00); // Green square
+	pesant.jumpVelocity = -10;
+	pesant.obstacleType = 'pesant'; // Mark as pesant obstacle
+	obstacles.push(pesant);
 }
 
 function checkCollision(player, obstacle) {
@@ -665,6 +714,34 @@ function checkCollision(player, obstacle) {
 	const obstacleBounds = obstacle.getBounds();
 	
 	return Phaser.Geom.Rectangle.Overlaps(playerBounds, obstacleBounds);
+}
+
+function startHandshakeSequence() {
+	if (!sidescrollerPlayer) return;
+	
+	// Pause the game
+	isGamePaused = true;
+	pauseTimer = 180; // 3 seconds at 60fps
+	
+	// Stop current animation and start handshake animation
+	sidescrollerPlayer.anims.stop();
+	sidescrollerPlayer.anims.play('handshake', true);
+	
+	console.log('Handshake sequence started - game paused for 3 seconds');
+}
+
+function endHandshakeSequence() {
+	if (!sidescrollerPlayer) return;
+	
+	// Resume the game
+	isGamePaused = false;
+	pauseTimer = 0;
+	
+	// Return to walking animation
+	sidescrollerPlayer.anims.stop();
+	sidescrollerPlayer.anims.play('walk', true);
+	
+	console.log('Handshake sequence ended - game resumed');
 }
 
 // Placeholder functions for future stages
