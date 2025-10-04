@@ -54,12 +54,15 @@ let increaseButton;
 let decreaseButton;
 let bidButton;
 let bidButtonText;
+let auctionBackground;
 
 function preload() {
 	// Load assets here
 	this.load.image('greve1', 'images/greve1.png');
 	this.load.image('greve2', 'images/greve2.png');
 	this.load.image('greve3', 'images/greve3.png');
+	this.load.image('auq1', 'images/auq1.png');
+	this.load.image('auq2', 'images/auq2.png');
 }
 
 function create() {
@@ -127,7 +130,6 @@ function botPlaceBid() {
 			
 			// Bot placed a bid - reset timer
 			lastBidder = 'bot';
-			resetAuctionTimer();
 			
 			// Update player bid and button text
 			playerBid = currentBid + 10;
@@ -334,8 +336,23 @@ function setupBiddingUI() {
 	
 	const scene = game.scene.scenes[0];
 	
-	// Background
-	scene.add.rectangle(400, 300, 800, 600, 0x2c3e50);
+	// Animated background
+	auctionBackground = scene.add.sprite(400, 300, 'auq1');
+	auctionBackground.setDisplaySize(800, 600);
+	
+	// Create auction background animation
+	scene.anims.create({
+		key: 'auction_bg',
+		frames: [
+			{ key: 'auq1' },
+			{ key: 'auq2' }
+		],
+		frameRate: 4,
+		repeat: -1
+	});
+	
+	// Start the background animation
+	auctionBackground.anims.play('auction_bg', true);
 
 	// Auction timer display (top center)
 	auctionTimerText = scene.add.text(400, 30, `Time: ${auctionTimer}`, {
