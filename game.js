@@ -101,6 +101,7 @@ function preload() {
 	this.load.image('droska2', 'images/droska2.png');
 	this.load.image('bonde1', 'images/bonde1.png');
 	this.load.image('bonde2', 'images/bonde2.png');
+	this.load.image('hay', 'images/hay.png');
 }
 
 function create() {
@@ -655,7 +656,7 @@ let isPesantInGame = false;
 function jump() {
 	if (!isJumping && sidescrollerPlayer) {
 		isJumping = true;
-		jumpVelocity = -15; // Negative for upward movement
+		jumpVelocity = -20; // Negative for upward movement
 	}
 }
 
@@ -713,11 +714,9 @@ function updateSidescroller() {
 		// Check collision with player
 		else if (checkCollision(sidescrollerPlayer, obstacle)) {
 			if (obstacle.obstacleType === 'haystack') {
-				console.log('Game Over! You hit a haystack obstacle.');
 				// Return to map - game over
 				exitToMinimap();
 			} else if (obstacle.obstacleType === 'pesant') {
-				console.log('You touched a pesant - starting handshake!');
 				isPesantInGame = false;
 				// Start handshake sequence
 				startHandshakeSequence();
@@ -730,8 +729,9 @@ function updateSidescroller() {
 }
 
 function spawnObstacle(scene) {
-	// Create a simple square obstacle
-	const obstacle = scene.add.rectangle(850, groundY - 15, 30, 30, 0xFF0000); // Red square
+	// Create a hay obstacle
+	const obstacle = scene.add.image(850, groundY - 15, 'hay');
+	obstacle.setScale(1.0); // Adjust size as needed
 	obstacle.obstacleType = 'haystack'; // Mark as haystack obstacle
 	obstacles.push(obstacle);
 }
@@ -763,8 +763,6 @@ function startHandshakeSequence() {
 	// Immediately stop current animation and start handshake animation
 	sidescrollerPlayer.anims.stop();
 	sidescrollerPlayer.anims.play('handshake', true);
-	
-	console.log('Handshake sequence started - game paused for 3 seconds');
 }
 
 function endHandshakeSequence() {
@@ -777,34 +775,6 @@ function endHandshakeSequence() {
 	// Return to walking animation (always running)
 	sidescrollerPlayer.anims.stop();
 	sidescrollerPlayer.anims.play('sidescroller_walk', true);
-	
-	console.log('Handshake sequence ended - game resumed');
-}
-
-// Placeholder functions for future stages
-function navigateMenuUp() {
-	console.log('Navigate menu up');
-}
-
-function navigateMenuDown() {
-	console.log('Navigate menu down');
-}
-
-function selectMenuItem() {
-	console.log('Select menu item');
-}
-
-function goBackInMenu() {
-	console.log('Go back in menu');
-}
-
-function continueToNextRound() {
-	console.log('Continue to next round');
-}
-
-function returnToMenu() {
-	console.log('Return to menu');
-	// Example: setGameStage('menu');
 }
 
 // Minimap functions
