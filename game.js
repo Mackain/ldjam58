@@ -56,6 +56,7 @@ let bidButton;
 let bidButtonText;
 let auctionBackground;
 let auctionAudience;
+let leadingBidText;
 
 function preload() {
 	// Load assets here
@@ -68,6 +69,7 @@ function preload() {
 	this.load.image('aud2', 'images/aud2.png');
 	this.load.image('aud3', 'images/aud3.png');
 	this.load.image('auqhand', 'images/auqhand.png');
+	this.load.image('auqSOLD', 'images/auqSOLD.png');
 }
 
 function create() {
@@ -106,6 +108,7 @@ function placeBid() {
 		
 		// Player placed a bid - reset timer
 		lastBidder = 'player';
+		updateLeadingBidText();
 		resetAuctionTimer();
 	}
 	botPlaceBid();
@@ -117,7 +120,7 @@ function placeBid() {
 		}
 		// Update bid button text
 		if (bidButtonText) {
-			bidButtonText.setText(`Place Bid $${playerBid}`);
+			bidButtonText.setText(`Press space to place bid ₣${playerBid}`);
 		}
 	}
 }
@@ -138,11 +141,12 @@ function botPlaceBid() {
 			
 			// Bot placed a bid - reset timer
 			lastBidder = 'bot';
+			updateLeadingBidText();
 			
 			// Update player bid and button text
 			playerBid = currentBid + 10;
 			if (bidButtonText) {
-				bidButtonText.setText(`Place Bid $${playerBid}`);
+				bidButtonText.setText(`Press space to place bid ₣${playerBid}`);
 			}
 		} else {
 			console.log("botBidChance: " + botBidChance);
@@ -153,7 +157,7 @@ function botPlaceBid() {
 }
 
 function biddingWon() {
-	console.log("Bidding won!");
+	console.log("Bidding won!");	
 	fancyStuffs++;
 	playerWallet -= currentBid;
 	walletText.setText(`Wallet: $${playerWallet}`);
@@ -192,12 +196,17 @@ function startAuctionTimer() {
 		}
 		
 		if (auctionTimer <= 0) {
-			// Timer reached zero - determine winner
-			if (lastBidder === 'player') {
-				biddingWon();
-			} else {
-				biddingLost();
-			}
+			// Stop the timer first
+			stopAuctionTimer();
+			
+			// Show SOLD animation for 1 second, then determine winner
+			showSoldAnimation(() => {
+				if (lastBidder === 'player') {
+					biddingWon();
+				} else {
+					biddingLost();
+				}
+			});
 		}
 	}, 1000);
 }
@@ -224,9 +233,9 @@ function showBotBidHand() {
 	
 	// Generate random x position across the width of the screen
 	const randomX = Math.random() * 700 + 50; // Between 50 and 750 to keep within bounds
-	
+	  
 	// Position hand in audience area (around middle to lower part of screen)
-	const handY = Math.random() * 80 + 350; // Between 300 and 500 pixels down
+	const handY = Math.random() * 200 + 300; // Between 300 and 500 pixels down
 	
 	// Create the hand sprite
 	const handSprite = scene.add.image(randomX, handY, 'auqhand');
@@ -240,6 +249,39 @@ function showBotBidHand() {
 			handSprite.destroy();
 		}
 	}, 1000);
+}
+
+function showSoldAnimation(callback) {
+	// Only show SOLD if we're in bidding stage
+	if (currentStage !== 'bidding') return;
+	
+	// Stop the current background animation
+	if (auctionBackground) {
+		auctionBackground.anims.stop();
+		auctionBackground.setTexture('auqSOLD');
+	}
+	
+	// Show SOLD for 1 second, then call the callback
+	setTimeout(() => {
+		if (callback) {
+			callback();
+		}
+	}, 1000);
+}
+
+function updateLeadingBidText() {
+	if (!leadingBidText) return;
+	
+	if (lastBidder === 'player') {
+		leadingBidText.setText('You have the leading bid');
+		leadingBidText.setFill('#ffffff'); // Green color for player leading
+	} else if (lastBidder === 'bot') {
+		leadingBidText.setText('Another count has the leading bid');
+		leadingBidText.setFill('#ffffff'); // Red color for bot leading
+	} else {
+		leadingBidText.setText('No bids yet');
+		leadingBidText.setFill('#ffffff'); // Orange color for no bids
+	}
 }
 
 // Input Handler System
@@ -427,28 +469,35 @@ function setupBiddingUI() {
 	
 	// Start the auction timer
 	startAuctionTimer();
+	
+	// Update leading bid text initially
+	updateLeadingBidText();
 
 	// Current bid display (center)
-	scene.add.text(400, 200, 'Current Bid:', {
+	scene.add.text(400, 200, `Current Bid: `, {
 		fontSize: '32px',
 		fill: '#ecf0f1',
 		fontFamily: 'Arial'
 	}).setOrigin(0.5);
 
-	currentBidText = scene.add.text(400, 250, `$${currentBid}`, {
+	currentBidText = scene.add.text(520, 200, `₣${currentBid}`, {
 		fontSize: '48px',
-		fill: '#e74c3c',
+		fontSize: '32px',
+		fill: '#ecf0f1',
+		fontFamily: 'Arial'
+	}).setOrigin(0.5);
+
+	// Leading bid display
+	leadingBidText = scene.add.text(400, 250, '', {
+		fontSize: '20px',
+		fill: '#f39c12',
 		fontFamily: 'Arial',
 		fontStyle: 'bold'
 	}).setOrigin(0.5);
 
-	// Place bid button
-	bidButton = scene.add.rectangle(500, 540, 100, 40, 0xf39c12)
-		.setInteractive()
-		.on('pointerdown', () => placeBid());
-
-	bidButtonText = scene.add.text(500, 540, `Place Bid $${playerBid}`, {
-		fontSize: '16px',
+	// Place bid instruction (centered)
+	bidButtonText = scene.add.text(400, 500, `Press space to place bid ₣${playerBid}`, {
+		fontSize: '20px',
 		fill: '#ffffff',
 		fontFamily: 'Arial'
 	}).setOrigin(0.5);
