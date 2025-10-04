@@ -46,6 +46,15 @@ let greve;
 let auctionZone;
 let minimapElements = [];
 
+// Map locations system
+let mapLocations = [
+	{ x: 210, y: 220, name: "Home", minigame: "bidding" },
+	{ x: 250, y: 290, name: "Paris", minigame: "bidding" }, // x: 250, y: 290,
+	{ x: 510, y: 530, name: "Giza", minigame: "bidding" }
+	// Add more locations as needed - you can adjust coordinates based on your map.png
+];
+let currentLocationIndex = 0;
+
 // UI elements
 let walletText;
 let currentBidText;
@@ -70,6 +79,7 @@ function preload() {
 	this.load.image('aud3', 'images/aud3.png');
 	this.load.image('auqhand', 'images/auqhand.png');
 	this.load.image('auqSOLD', 'images/auqSOLD.png');
+	this.load.image('map', 'images/map.png');
 }
 
 function create() {
@@ -84,11 +94,6 @@ function create() {
 }
 
 function update(time, delta) {
-	// Check collisions in minimap mode
-	if (currentStage === 'minimap') {
-		checkCollisions();
-	}
-	
 	// Update auction timer display
 	if (currentStage === 'bidding' && auctionTimerText) {
 		auctionTimerText.setText(`Time: ${auctionTimer}`);
@@ -288,10 +293,11 @@ function updateLeadingBidText() {
 function setupInputHandlers(scene) {
 	// Minimap stage input handler
 	inputHandlers.minimap = {
-		'UP': () => { movePlayer(0, -1); startWalkAnimation(); },
-		'DOWN': () => { movePlayer(0, 1); startWalkAnimation(); },
-		'LEFT': () => { movePlayer(-1, 0); startWalkAnimation(); },
-		'RIGHT': () => { movePlayer(1, 0); startWalkAnimation(); }
+		'UP': () => { navigateToLocation('prev'); startWalkAnimation(); },
+		'DOWN': () => { navigateToLocation('next'); startWalkAnimation(); },
+		'LEFT': () => { navigateToLocation('prev'); startWalkAnimation(); },
+		'RIGHT': () => { navigateToLocation('next'); startWalkAnimation(); },
+		'ENTER': () => { enterCurrentLocation(); }
 	};
 	
 	// Bidding stage input handler
@@ -356,10 +362,12 @@ function setupMinimapUI() {
 	
 	// Create minimap background
 	const scene = game.scene.scenes[0];
-	scene.add.rectangle(400, 300, 800, 600, 0x1a4a3a);
+	const mapBackground = scene.add.image(400, 300, 'map');
+	mapBackground.setDisplaySize(800, 600);
 	
-	// Create player with animation
-	greve = scene.add.sprite(100, 100, 'greve1');
+	// Create player with animation at first location
+	const firstLocation = mapLocations[currentLocationIndex];
+	greve = scene.add.sprite(firstLocation.x, firstLocation.y, 'greve1');
 	
 	// Create walking animation
 	scene.anims.create({
@@ -390,9 +398,17 @@ function setupMinimapUI() {
 	}).setOrigin(0.5);
 	
 	// Instructions
-	scene.add.text(50, 50, 'Use arrow keys to move', {
+	scene.add.text(50, 50, 'Use arrow keys to navigate, Enter to interact', {
 		fontSize: '16px',
 		fill: '#ffffff',
+		fontFamily: 'Arial'
+	});
+	
+	// Location display
+	const location = mapLocations[currentLocationIndex];
+	scene.add.text(50, 500, `Location: ${location.name}`, {
+		fontSize: '18px',
+		fill: '#ffff00',
 		fontFamily: 'Arial'
 	});
 	
@@ -558,26 +574,56 @@ function movePlayer(deltaX, deltaY) {
 		if (greve.anims) {
 			greve.anims.play('walk', true);
 		}
-		
-		// Check collision with auction zone
-		checkCollisions();
 	}
 }
 
-function checkCollisions() {
-	if (!greve || !auctionZone) return;
+function navigateToLocation(direction) {
+	if (!greve || mapLocations.length === 0) return;
 	
-	// Simple collision detection
-	const distance = Phaser.Math.Distance.Between(
-		greve.x, greve.y, 
-		auctionZone.x, auctionZone.y
-	);
+	// Calculate new location index
+	let newIndex = currentLocationIndex;
 	
-	if (distance < 50) {
-		// Enter auction minigame
+	if (direction === 'next') {
+		newIndex = (currentLocationIndex + 1) % mapLocations.length;
+	} else if (direction === 'prev') {
+		newIndex = (currentLocationIndex - 1 + mapLocations.length) % mapLocations.length;
+	}
+	
+	// Update current location
+	currentLocationIndex = newIndex;
+	const location = mapLocations[currentLocationIndex];
+	
+	// Move player to new location
+	greve.x = location.x;
+	greve.y = location.y;
+	
+	// Play walking animation
+	if (greve.anims) {
+		greve.anims.play('walk', true);
+	}
+	
+	// Update location display
+	updateLocationDisplay();
+}
+
+function updateLocationDisplay() {
+	// This will show which location the player is currently at
+	const location = mapLocations[currentLocationIndex];
+	console.log(`Current location: ${location.name}`);
+}
+
+function enterCurrentLocation() {
+	const location = mapLocations[currentLocationIndex];
+	console.log(`Entering ${location.name}`);
+	
+	// Enter the minigame for this location
+	if (location.minigame === 'bidding') {
 		setGameStage('bidding');
 	}
+	// Add more minigame types as needed
 }
+
+
 
 function exitToMinimap() {
 	stopAuctionTimer();
