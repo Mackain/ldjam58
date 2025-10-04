@@ -677,7 +677,13 @@ function jump() {
 	}
 }
 
+let isFirstRun = true;
+
 function updateSidescroller() {
+	if (isFirstRun) {
+		isFirstRun = false;
+		jump();
+	}
 	if (currentStage !== 'sidescroller' || !sidescrollerPlayer) return;
 	
 	const scene = game.scene.scenes[0];
@@ -687,7 +693,7 @@ function updateSidescroller() {
 		pauseTimer--;
 		if (pauseTimer <= 0) {
 			// Resume game after 3 seconds (180 frames at 60fps)
-			endHandshakeSequence();
+			endPesantShakeSequence();
 		}
 		return; // Don't update game logic while paused
 	}
@@ -790,6 +796,7 @@ function updateSidescroller() {
 			if (obstacle.obstacleType === 'haystack' && !isCollisionImmune) {
 				// Return to map - game over
 				isPesantInGame = false;
+				isFirstRun = true;
 				exitToMinimap();
 			} else if (obstacle.obstacleType === 'pesant') {
 				isPesantInGame = false;
@@ -801,7 +808,7 @@ function updateSidescroller() {
 				isCollisionImmune = true;
 				immunityTimer = 60;
 				// Start pesantShake sequence
-				startHandshakeSequence();
+				startPesantShakeSequence();
 				// Remove the pesant
 				obstacle.destroy();
 				obstacles.splice(i, 1);
@@ -843,7 +850,7 @@ function checkCollision(player, obstacle) {
 	return Phaser.Geom.Rectangle.Overlaps(playerBounds, obstacleBounds);
 }
 
-function startHandshakeSequence() {
+function startPesantShakeSequence() {
 	if (!sidescrollerPlayer) return;
 	
 	// Pause the game
@@ -855,8 +862,11 @@ function startHandshakeSequence() {
 	sidescrollerPlayer.anims.play('pesantShake', true);
 }
 
-function endHandshakeSequence() {
+function endPesantShakeSequence() {
 	if (!sidescrollerPlayer) return;
+
+	playerWallet += Math.floor(Math.random() * 15 + 5); // Random between $5 and $20
+	walletText.setText(`Wallet: $${playerWallet}`);
 	
 	// Resume the game
 	isGamePaused = false;
