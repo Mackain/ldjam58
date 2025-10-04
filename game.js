@@ -37,7 +37,7 @@ let lastBidder = null; // 'player' or 'bot'
 
 
 // Game stage management
-let currentStage = 'minimap'; // Start with minimap instead of bidding
+let currentStage = 'minimap';
 let inputHandlers = {};
 let activeInputHandler = null;
 
@@ -55,6 +55,7 @@ let decreaseButton;
 let bidButton;
 let bidButtonText;
 let auctionBackground;
+let auctionAudience;
 
 function preload() {
 	// Load assets here
@@ -63,6 +64,10 @@ function preload() {
 	this.load.image('greve3', 'images/greve3.png');
 	this.load.image('auq1', 'images/auq1.png');
 	this.load.image('auq2', 'images/auq2.png');
+	this.load.image('aud1', 'images/aud1.png');
+	this.load.image('aud2', 'images/aud2.png');
+	this.load.image('aud3', 'images/aud3.png');
+	this.load.image('auqhand', 'images/auqhand.png');
 }
 
 function create() {
@@ -127,6 +132,9 @@ function botPlaceBid() {
 			bidWinningProbability++;
 			console.log("botBidChance: " + botBidChance);
 			console.log("Bot places a bid. Current bid is now $" + currentBid);
+			
+			// Show bot bid hand in audience
+			showBotBidHand();
 			
 			// Bot placed a bid - reset timer
 			lastBidder = 'bot';
@@ -206,6 +214,32 @@ function stopAuctionTimer() {
 		clearInterval(timerInterval);
 		timerInterval = null;
 	}
+}
+
+function showBotBidHand() {
+	// Only show hand if we're in bidding stage
+	if (currentStage !== 'bidding') return;
+	
+	const scene = game.scene.scenes[0];
+	
+	// Generate random x position across the width of the screen
+	const randomX = Math.random() * 700 + 50; // Between 50 and 750 to keep within bounds
+	
+	// Position hand in audience area (around middle to lower part of screen)
+	const handY = Math.random() * 80 + 350; // Between 300 and 500 pixels down
+	
+	// Create the hand sprite
+	const handSprite = scene.add.image(randomX, handY, 'auqhand');
+	
+	// Make sure the hand appears above the audience animation
+	handSprite.setDepth(10);
+	
+	// Remove the hand after 1 second (1000 milliseconds)
+	setTimeout(() => {
+		if (handSprite && handSprite.scene) {
+			handSprite.destroy();
+		}
+	}, 1000);
 }
 
 // Input Handler System
@@ -353,6 +387,25 @@ function setupBiddingUI() {
 	
 	// Start the background animation
 	auctionBackground.anims.play('auction_bg', true);
+	
+	// Audience animation layer on top of background
+	auctionAudience = scene.add.sprite(400, 300, 'aud1');
+	auctionAudience.setDisplaySize(800, 600);
+	
+	// Create audience animation
+	scene.anims.create({
+		key: 'auction_audience',
+		frames: [
+			{ key: 'aud1' },
+			{ key: 'aud2' },
+			{ key: 'aud3' }
+		],
+		frameRate: 4, // Slightly faster than background
+		repeat: -1
+	});
+	
+	// Start the audience animation
+	auctionAudience.anims.play('auction_audience', true);
 
 	// Auction timer display (top center)
 	auctionTimerText = scene.add.text(400, 30, `Time: ${auctionTimer}`, {
