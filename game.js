@@ -789,6 +789,7 @@ function updateSidescroller() {
 		else if (checkCollision(sidescrollerPlayer, obstacle)) {
 			if (obstacle.obstacleType === 'haystack' && !isCollisionImmune) {
 				// Return to map - game over
+				isPesantInGame = false;
 				exitToMinimap();
 			} else if (obstacle.obstacleType === 'pesant') {
 				isPesantInGame = false;
