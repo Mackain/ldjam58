@@ -26,6 +26,7 @@ const game = new Phaser.Game(config);
 let playerWallet = 500;
 let currentBid = 10;
 let playerBid = 20;
+let bidWinningProbability = 1;
 
 // Game stage management
 let currentStage = 'minimap'; // Start with minimap instead of bidding
@@ -78,18 +79,29 @@ function placeBid() {
 		currentBidText.setText(`$${currentBid}`);
 		playerWallet -= 10;
 		walletText.setText(`Wallet: $${playerWallet}`);
-		
-		// Update player bid display to show next potential bid
+	}
+	botPlaceBid();
+	if (playerWallet >= 10) {
+			// Update player bid display to show next potential bid
 		playerBid = currentBid + 10;
 		if (playerBidText) {
 			playerBidText.setText(`$${playerBid}`);
 		}
 	}
-	botPlaceBid();
 }
 
 function botPlaceBid() {
-	
+	let botBidChance = Math.floor(Math.random() * 10) + 1;
+	if (botBidChance > bidWinningProbability) {
+		currentBid += 10;
+		currentBidText.setText(`$${currentBid}`);
+		bidWinningProbability++;;
+		console.log("botBidChance: " + botBidChance);
+		console.log("Bot places a bid. Current bid is now $" + currentBid);
+	} else {
+		console.log("botBidChance: " + botBidChance);
+		console.log('Bot decides not to bid this round.');
+	}
 }
 
 // Input Handler System
