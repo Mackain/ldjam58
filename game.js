@@ -30,6 +30,10 @@ let fancyStuffs = 0;
 let currentBid = 10;
 let playerBid = 20;
 let bidWinningProbability = 1;
+let auctionTimer = 5;
+let auctionTimerText;
+let timerInterval;
+let lastBidder = null; // 'player' or 'bot'
 
 
 // Game stage management
@@ -73,16 +77,27 @@ function update(time, delta) {
 	if (currentStage === 'minimap') {
 		checkCollisions();
 	}
+	
+	// Update auction timer display
+	if (currentStage === 'bidding' && auctionTimerText) {
+		auctionTimerText.setText(`Time: ${auctionTimer}`);
+	}
 }
 
 function placeBid() {
 	// Check if player has enough money to bid $10 more
-	if (playerWallet >= 10) {
+	if (lastBidder === "player") {
+		return; 
+	}
+	if (playerWallet >= currentBid + 10) {
 		// Increase current bid by $10
 		currentBid += 10;
 		currentBidText.setText(`$${currentBid}`);
-		playerWallet -= 10;
 		walletText.setText(`Wallet: $${playerWallet}`);
+		
+		// Player placed a bid - reset timer
+		lastBidder = 'player';
+		resetAuctionTimer();
 	}
 	botPlaceBid();
 	if (playerWallet >= 10) {
@@ -102,20 +117,79 @@ function botPlaceBid() {
 		bidWinningProbability++;;
 		console.log("botBidChance: " + botBidChance);
 		console.log("Bot places a bid. Current bid is now $" + currentBid);
+		
+		// Bot placed a bid - reset timer
+		lastBidder = 'bot';
+		resetAuctionTimer();
 	} else {
 		console.log("botBidChance: " + botBidChance);
 		console.log('Bot decides not to bid this round.');
-		biddingWon();
+		// Don't automatically win - let timer decide
 	}
 }
 
 function biddingWon() {
 	console.log("Bidding won!");
 	fancyStuffs++;
+	playerWallet -= currentBid;
+	walletText.setText(`Wallet: $${playerWallet}`);
+	currentBid = 10;
+	bidWinningProbability = 1;
+	playerBid = 20;
+	if (playerBidText) {
+		playerBidText.setText(`$${playerBid}`);
+	}
+	setupBiddingUI();
 }
 
 function biddingLost() {
 	console.log("Bidding lost!");
+	currentBid = 10;
+	bidWinningProbability = 1;
+	playerBid = 20;
+	if (playerBidText) {
+		playerBidText.setText(`$${playerBid}`);
+	}
+	setupBiddingUI();
+	// Could add UI feedback here later
+}
+
+// Timer management functions
+function startAuctionTimer() {
+	auctionTimer = 5;
+	lastBidder = null;
+	if (timerInterval) {
+		clearInterval(timerInterval);
+	}
+	timerInterval = setInterval(() => {
+		auctionTimer--;
+		if (auctionTimerText) {
+			auctionTimerText.setText(`Time: ${auctionTimer}`);
+		}
+		
+		if (auctionTimer <= 0) {
+			// Timer reached zero - determine winner
+			if (lastBidder === 'player') {
+				biddingWon();
+			} else {
+				biddingLost();
+			}
+		}
+	}, 1000);
+}
+
+function resetAuctionTimer() {
+	auctionTimer = 5;
+	if (auctionTimerText) {
+		auctionTimerText.setText(`Time: ${auctionTimer}`);
+	}
+}
+
+function stopAuctionTimer() {
+	if (timerInterval) {
+		clearInterval(timerInterval);
+		timerInterval = null;
+	}
 }
 
 // Input Handler System
@@ -249,12 +323,23 @@ function setupBiddingUI() {
 	// Background
 	scene.add.rectangle(400, 300, 800, 600, 0x2c3e50);
 
+	// Auction timer display (top center)
+	auctionTimerText = scene.add.text(400, 30, `Time: ${auctionTimer}`, {
+		fontSize: '32px',
+		fill: '#f39c12',
+		fontFamily: 'Arial',
+		fontStyle: 'bold'
+	}).setOrigin(0.5);
+
 	// Wallet display (top right)
 	walletText = scene.add.text(650, 30, `Wallet: $${playerWallet}`, {
 		fontSize: '24px',
 		fill: '#ecf0f1',
 		fontFamily: 'Arial'
 	});
+	
+	// Start the auction timer
+	startAuctionTimer();
 
 	// Current bid display (center)
 	scene.add.text(400, 200, 'Current Bid:', {
@@ -271,7 +356,7 @@ function setupBiddingUI() {
 	}).setOrigin(0.5);
 
 	// Player bidding section (bottom)
-	scene.add.text(400, 450, 'Your Bid:', {
+	scene.add.text(400, 450, 'Next Bid:', {
 		fontSize: '24px',
 		fill: '#ecf0f1',
 		fontFamily: 'Arial'
@@ -289,7 +374,7 @@ function setupBiddingUI() {
 		.setInteractive()
 		.on('pointerdown', () => placeBid());
 
-	scene.add.text(500, 540, 'Place Bid', {
+	scene.add.text(500, 540, `Place Bid ${playerBid}`, {
 		fontSize: '16px',
 		fill: '#ffffff',
 		fontFamily: 'Arial'
@@ -373,6 +458,7 @@ function checkCollisions() {
 }
 
 function exitToMinimap() {
+	stopAuctionTimer();
 	setGameStage('minimap');
 }
 
