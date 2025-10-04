@@ -101,6 +101,8 @@ function preload() {
 	this.load.image('droska2', 'images/droska2.png');
 	this.load.image('bonde1', 'images/bonde1.png');
 	this.load.image('bonde2', 'images/bonde2.png');
+	this.load.image('bonde3', 'images/bonde3.png');
+	this.load.image('bonde4', 'images/bonde4.png');
 	this.load.image('hay', 'images/hay.png');
 }
 
@@ -618,7 +620,7 @@ function setupSidescrollerUI() {
 		handshakeAnimationCreated = true;
 	}
 	
-	// Create bonde animation
+	// Create bonde walking animation
 	scene.anims.create({
 		key: 'bonde',
 		frames: [
@@ -626,6 +628,17 @@ function setupSidescrollerUI() {
 			{ key: 'bonde2' }
 		],
 		frameRate: 6,
+		repeat: -1
+	});
+	
+	// Create bonde running animation
+	scene.anims.create({
+		key: 'bonde_run',
+		frames: [
+			{ key: 'bonde3' },
+			{ key: 'bonde4' }
+		],
+		frameRate: 10,
 		repeat: -1
 	});
 	
@@ -703,7 +716,56 @@ function updateSidescroller() {
 	// Move and check obstacles
 	for (let i = obstacles.length - 1; i >= 0; i--) {
 		const obstacle = obstacles[i];
-		obstacle.x -= gameSpeed;
+		
+		// Handle peasant behavior
+		if (obstacle.obstacleType === 'pesant') {
+			obstacle.spawnTime++;
+			
+			// Start running after 2 seconds (120 frames at 60fps)
+			if (obstacle.spawnTime > 40 && !obstacle.isRunning) {
+				obstacle.isRunning = true;
+				obstacle.anims.play('bonde_run', true);
+			}
+			
+			// Handle peasant jumping over hay obstacles
+			if (obstacle.isRunning && !obstacle.isJumping) {
+				// Check for nearby hay obstacles to jump over
+				for (let hayObstacle of obstacles) {
+					if (hayObstacle.obstacleType === 'haystack') {
+						const distance = hayObstacle.x - obstacle.x;
+						// Jump when hay is about 80-100 pixels ahead
+						if (distance > 80 && distance < 100) {
+							obstacle.isJumping = true;
+							obstacle.jumpVelocity = -12;
+							break;
+						}
+					}
+				}
+			}
+			
+			// Handle peasant jumping physics
+			if (obstacle.isJumping) {
+				obstacle.y += obstacle.jumpVelocity;
+				obstacle.jumpVelocity += gravity;
+				
+				// Check if landed
+				if (obstacle.y >= groundY - 15) {
+					obstacle.y = groundY - 15;
+					obstacle.isJumping = false;
+					obstacle.jumpVelocity = -10; // Reset jump velocity
+				}
+			}
+			
+			// Move peasant (slower when running)
+			if (obstacle.isRunning) {
+				obstacle.x -= obstacle.runSpeed;
+			} else {
+				obstacle.x -= gameSpeed;
+			}
+		} else {
+			// Regular obstacle movement
+			obstacle.x -= gameSpeed;
+		}
 		
 		// Remove obstacles that are off screen
 		if (obstacle.x < -50) {
@@ -740,9 +802,17 @@ function spawnPesant(scene) {
 	// Create an animated bonde peasant
 	const pesant = scene.add.sprite(850, groundY - 15, 'bonde1');
 	pesant.setScale(1.2); // Make slightly larger
-	pesant.anims.play('bonde', true); // Start bonde animation
+	pesant.anims.play('bonde', true); // Start bonde walking animation
 	pesant.jumpVelocity = -10;
 	pesant.obstacleType = 'pesant'; // Mark as pesant obstacle
+	
+	// Add running behavior properties
+	pesant.spawnTime = 0; // Track how long peasant has existed
+	pesant.isRunning = false;
+	pesant.runSpeed = gameSpeed - 7; // Slightly faster than player (moves left slower than hay)
+	pesant.isJumping = false;
+	pesant.jumpTimer = 0;
+	
 	obstacles.push(pesant);
 }
 
