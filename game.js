@@ -28,7 +28,7 @@ let fancyStuffs = 0;
 
 // Auction
 let currentBid = 10;
-let playerBid = 20;
+let playerBid = 20; // Will be updated to currentBid + 10 when auction starts
 let bidWinningProbability = 1;
 let auctionTimer = 5;
 let auctionTimerText;
@@ -53,6 +53,7 @@ let playerBidText;
 let increaseButton;
 let decreaseButton;
 let bidButton;
+let bidButtonText;
 
 function preload() {
 	// Load assets here
@@ -100,32 +101,45 @@ function placeBid() {
 		resetAuctionTimer();
 	}
 	botPlaceBid();
-	if (playerWallet >= 10) {
+	if (playerWallet >= currentBid + 10) {
 			// Update player bid display to show next potential bid
 		playerBid = currentBid + 10;
 		if (playerBidText) {
 			playerBidText.setText(`$${playerBid}`);
 		}
+		// Update bid button text
+		if (bidButtonText) {
+			bidButtonText.setText(`Place Bid $${playerBid}`);
+		}
 	}
 }
 
 function botPlaceBid() {
-	let botBidChance = Math.floor(Math.random() * 10) + 1;
-	if (botBidChance > bidWinningProbability) {
-		currentBid += 10;
-		currentBidText.setText(`$${currentBid}`);
-		bidWinningProbability++;;
-		console.log("botBidChance: " + botBidChance);
-		console.log("Bot places a bid. Current bid is now $" + currentBid);
-		
-		// Bot placed a bid - reset timer
-		lastBidder = 'bot';
-		resetAuctionTimer();
-	} else {
-		console.log("botBidChance: " + botBidChance);
-		console.log('Bot decides not to bid this round.');
-		// Don't automatically win - let timer decide
-	}
+	// Add delay before bot makes decision (1-3 seconds)
+	setTimeout(() => {
+		let botBidChance = Math.floor(Math.random() * 10) + 1;
+		if (botBidChance > bidWinningProbability) {
+			currentBid += 10;
+			currentBidText.setText(`$${currentBid}`);
+			bidWinningProbability++;
+			console.log("botBidChance: " + botBidChance);
+			console.log("Bot places a bid. Current bid is now $" + currentBid);
+			
+			// Bot placed a bid - reset timer
+			lastBidder = 'bot';
+			resetAuctionTimer();
+			
+			// Update player bid and button text
+			playerBid = currentBid + 10;
+			if (bidButtonText) {
+				bidButtonText.setText(`Place Bid $${playerBid}`);
+			}
+		} else {
+			console.log("botBidChance: " + botBidChance);
+			console.log('Bot decides not to bid this round.');
+			// Don't automatically win - let timer decide
+		}
+	}, Math.floor(Math.random() * 2000) + 1000); // 1-3 second delay
 }
 
 function biddingWon() {
@@ -135,7 +149,7 @@ function biddingWon() {
 	walletText.setText(`Wallet: $${playerWallet}`);
 	currentBid = 10;
 	bidWinningProbability = 1;
-	playerBid = 20;
+	playerBid = currentBid + 10; // Always 10 more than current bid
 	if (playerBidText) {
 		playerBidText.setText(`$${playerBid}`);
 	}
@@ -146,7 +160,7 @@ function biddingLost() {
 	console.log("Bidding lost!");
 	currentBid = 10;
 	bidWinningProbability = 1;
-	playerBid = 20;
+	playerBid = currentBid + 10; // Always 10 more than current bid
 	if (playerBidText) {
 		playerBidText.setText(`$${playerBid}`);
 	}
@@ -338,6 +352,9 @@ function setupBiddingUI() {
 		fontFamily: 'Arial'
 	});
 	
+	// Initialize playerBid to be current bid + 10
+	playerBid = currentBid + 10;
+	
 	// Start the auction timer
 	startAuctionTimer();
 
@@ -355,26 +372,12 @@ function setupBiddingUI() {
 		fontStyle: 'bold'
 	}).setOrigin(0.5);
 
-	// Player bidding section (bottom)
-	scene.add.text(400, 450, 'Next Bid:', {
-		fontSize: '24px',
-		fill: '#ecf0f1',
-		fontFamily: 'Arial'
-	}).setOrigin(0.5);
-
-	playerBidText = scene.add.text(400, 490, `$${playerBid}`, {
-		fontSize: '32px',
-		fill: '#3498db',
-		fontFamily: 'Arial',
-		fontStyle: 'bold'
-	}).setOrigin(0.5);
-
 	// Place bid button
 	bidButton = scene.add.rectangle(500, 540, 100, 40, 0xf39c12)
 		.setInteractive()
 		.on('pointerdown', () => placeBid());
 
-	scene.add.text(500, 540, `Place Bid ${playerBid}`, {
+	bidButtonText = scene.add.text(500, 540, `Place Bid $${playerBid}`, {
 		fontSize: '16px',
 		fill: '#ffffff',
 		fontFamily: 'Arial'
