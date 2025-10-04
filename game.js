@@ -24,9 +24,13 @@ const game = new Phaser.Game(config);
 
 // Game variables
 let playerWallet = 500;
+let fancyStuffs = 0;
+
+// Auction
 let currentBid = 10;
 let playerBid = 20;
 let bidWinningProbability = 1;
+
 
 // Game stage management
 let currentStage = 'minimap'; // Start with minimap instead of bidding
@@ -101,7 +105,17 @@ function botPlaceBid() {
 	} else {
 		console.log("botBidChance: " + botBidChance);
 		console.log('Bot decides not to bid this round.');
+		biddingWon();
 	}
+}
+
+function biddingWon() {
+	console.log("Bidding won!");
+	fancyStuffs++;
+}
+
+function biddingLost() {
+	console.log("Bidding lost!");
 }
 
 // Input Handler System
