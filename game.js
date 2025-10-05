@@ -169,6 +169,11 @@ function preload() {
 	this.load.image('artifact10', 'images/artifact10.png');
 	this.load.image('splash', 'images/splash.png');
 	this.load.image('splashBlink', 'images/splashBlink.png');
+	this.load.image('england', 'images/england.png');
+	this.load.image('englandCloud1', 'images/englandCloud.png');
+	this.load.image('englandCloud2', 'images/englandCloud2.png');
+	this.load.image('englandTree', 'images/englandTree.png');
+
 	
 	// Load audio files
 	this.load.audio('auctionClub', 'sounds/Auction-club.mp3');
