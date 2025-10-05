@@ -37,14 +37,14 @@ let lastBidder = null; // 'player' or 'bot'
 
 
 // Game stage management
-let currentStage = 'minimap';
+let currentStage = 'worldMap';
 let inputHandlers = {};
 let activeInputHandler = null;
 
-// Minimap variables
+// WorldMap variables
 let greve;
 let auctionZone;
-let minimapElements = [];
+let worldMapElements = [];
 
 // Map locations system
 let mapLocations = [
@@ -116,8 +116,8 @@ function create() {
 	// Initialize input handlers
 	setupInputHandlers(this);
 	
-	// Start with minimap
-	setGameStage('minimap');
+	// Start with worldMap
+	setGameStage('worldMap');
 }
 
 function update(time, delta) {
@@ -328,8 +328,8 @@ function updateLeadingBidText() {
 
 // Input Handler System
 function setupInputHandlers(scene) {
-	// Minimap stage input handler
-	inputHandlers.minimap = {
+	// WorldMap stage input handler
+	inputHandlers.worldMap = {
 		'UP': () => { navigateToLocation('prev'); startWalkAnimation(); },
 		'DOWN': () => { navigateToLocation('next'); startWalkAnimation(); },
 		'LEFT': () => { navigateToLocation('prev'); startWalkAnimation(); },
@@ -341,7 +341,7 @@ function setupInputHandlers(scene) {
 	inputHandlers.bidding = {
 		'SPACE': () => placeBid(),
 		'ENTER': () => placeBid(),
-		'ESC': () => exitToMinimap()
+		'ESC': () => exitToWorldMap()
 	};
 	
 	// Sidescroller stage input handler
@@ -349,12 +349,12 @@ function setupInputHandlers(scene) {
 		'SPACE': () => jump(),
 		'UP': () => jump(),
 		'ENTER': () => jump(),
-		'ESC': () => exitToMinimap()
+		'ESC': () => exitToWorldMap()
 	};
 
 	// Giza stage input handler
 	inputHandlers.giza = {
-		'ESC': () => exitToMinimap(),
+		'ESC': () => exitToWorldMap(),
 		'LEFT': () => slideLeft(),
 		'RIGHT': () => slideRight()
 	};
@@ -404,8 +404,8 @@ function setGameStage(stageName) {
 	console.log(`Game stage changed to: ${stageName}`);
 	
 	// Clear existing UI and set up new stage
-	if (stageName === 'minimap') {
-		setupMinimapUI();
+	if (stageName === 'worldMap') {
+		setupWorldMapUI();
 	} else if (stageName === 'bidding') {
 		setupBiddingUI();
 	} else if (stageName === 'sidescroller') {
@@ -415,11 +415,11 @@ function setGameStage(stageName) {
 	}
 }
 
-function setupMinimapUI() {
+function setupWorldMapUI() {
 	// Clear existing elements
 	clearUI();
 	
-	// Create minimap background
+	// Create worldMap background
 	const scene = game.scene.scenes[0];
 	const mapBackground = scene.add.image(400, 300, 'map');
 	mapBackground.setDisplaySize(800, 600);
@@ -604,7 +604,7 @@ function setupSidescrollerUI() {
 	// Create ground
 	scene.add.rectangle(400, 550, 800, 100, 0x8B4513); // Brown ground
 	
-	// Create player using same sprite as minimap
+	// Create player using same sprite as worldMap
 	sidescrollerPlayer = scene.add.sprite(100, groundY - 25, 'greve1');
 	sidescrollerPlayer.setScale(1.5); // Make slightly larger
 	
@@ -845,7 +845,7 @@ function updateSidescroller() {
 				// Return to map - game over
 				isPesantInGame = false;
 				isFirstRun = true;
-				exitToMinimap();
+				exitToWorldMap();
 			} else if (obstacle.obstacleType === 'pesant') {
 				isPesantInGame = false;
 				// Reset player to ground level (even if jumping)
@@ -929,7 +929,7 @@ function endPesantShakeSequence() {
 	sidescrollerPlayer.anims.play('sidescroller_walk', true);
 }
 
-// Minimap functions
+// WorldMap functions
 function movePlayer(deltaX, deltaY) {
 	if (!greve) return;
 	
@@ -1001,11 +1001,11 @@ function enterCurrentLocation() {
 
 
 
-function exitToMinimap() {
+function exitToWorldMap() {
 	isFirstRun = true;
 	isPesantInGame = false;
 	stopAuctionTimer();
-	setGameStage('minimap');
+	setGameStage('worldMap');
 }
 
 // Animation helper functions
