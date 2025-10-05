@@ -50,7 +50,7 @@ let minimapElements = [];
 let mapLocations = [
 	{ x: 235, y: 220, name: "Home", minigame: "sidescroller" },
 	{ x: 270, y: 300, name: "Paris", minigame: "bidding" },
-	{ x: 535, y: 540, name: "Giza", minigame: "bidding" }
+	{ x: 535, y: 540, name: "Giza", minigame: "giza" }
 	// Add more locations as needed - you can adjust coordinates based on your map.png
 ];
 let currentLocationIndex = 0;
@@ -106,6 +106,7 @@ function preload() {
 	this.load.image('bonde3', 'images/bonde3.png');
 	this.load.image('bonde4', 'images/bonde4.png');
 	this.load.image('hay', 'images/hay.png');
+	this.load.image('giza', 'images/giza.png');
 }
 
 function create() {
@@ -128,6 +129,11 @@ function update(time, delta) {
 	// Update sidescroller game
 	if (currentStage === 'sidescroller') {
 		updateSidescroller();
+	}
+
+	// Update giza game
+	if (currentStage === 'giza') {
+		//updateGiza();
 	}
 }
 
@@ -365,11 +371,12 @@ function setupInputHandlers(scene) {
 	scene.input.keyboard.on('keydown', (event) => {
 		let keyName = event.code;
 		
-		// Handle arrow keys
-		if (keyName === 'ArrowUp') keyName = 'UP';
-		else if (keyName === 'ArrowDown') keyName = 'DOWN';
-		else if (keyName === 'ArrowLeft') keyName = 'LEFT';
-		else if (keyName === 'ArrowRight') keyName = 'RIGHT';
+		// Handle arrow keys and WASD
+		if (keyName === 'ArrowUp' || keyName === 'KeyW') keyName = 'UP';
+		else if (keyName === 'ArrowDown' || keyName === 'KeyS') keyName = 'DOWN';
+		else if (keyName === 'ArrowLeft' || keyName === 'KeyA') keyName = 'LEFT';
+		else if (keyName === 'ArrowRight' || keyName === 'KeyD') keyName = 'RIGHT';
+		
 		// Handle other keys
 		else if (keyName === 'Space') keyName = 'SPACE';
 		else if (keyName === 'Enter') keyName = 'ENTER';
@@ -393,6 +400,8 @@ function setGameStage(stageName) {
 		setupBiddingUI();
 	} else if (stageName === 'sidescroller') {
 		setupSidescrollerUI();
+	} else if (stageName === 'giza') {
+		setupGizaUI();
 	}
 }
 
@@ -668,6 +677,27 @@ function setupSidescrollerUI() {
 	});
 }
 
+
+// Giza functions
+function setupGizaUI() {
+
+	clearUI();
+	// no clue what this does but it happens everywhere so i guess it is needed here...
+	const scene = game.scene.scenes[0];
+
+	// Animated background
+	auctionBackground = scene.add.sprite(400, 300, 'giza');
+	auctionBackground.setDisplaySize(800, 600);
+
+	// Exit instruction
+	scene.add.text(50, 80, 'Press ESC to return to map', {
+		fontSize: '16px',
+		fill: '#000000',
+		fontFamily: 'Arial'
+	});
+
+}
+
 let isPesantInGame = false;
 
 function jump() {
@@ -941,6 +971,8 @@ function enterCurrentLocation() {
 		setGameStage('bidding');
 	} else if (location.minigame === 'sidescroller') {
 		setGameStage('sidescroller');
+	} else if (location.minigame === 'giza') {
+		setGameStage('giza');
 	}
 	// Add more minigame types as needed
 }
