@@ -25,6 +25,7 @@ const game = new Phaser.Game(config);
 // Game variables
 let playerWallet = 500;
 let fancyStuffs = 0;
+let socialStatus = 100;
 
 // Auction
 let currentBid = 10;
@@ -135,6 +136,8 @@ function update(time, delta) {
 	if (currentStage === 'giza') {
 		updateGiza();
 	}
+	socialStatus -= 0.01;
+	console.log("socialStatus: " + socialStatus);
 }
 
 function placeBid() {
@@ -201,6 +204,7 @@ function botPlaceBid() {
 function biddingWon() {
 	console.log("Bidding won!");	
 	fancyStuffs++;
+	socialStatus += 20;
 	playerWallet -= currentBid;
 	walletText.setText(`Wallet: ${playerWallet} Gold`);
 	currentBid = 10;
