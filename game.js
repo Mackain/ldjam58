@@ -108,6 +108,21 @@ function preload() {
 	this.load.image('bonde4', 'images/bonde4.png');
 	this.load.image('hay', 'images/hay.png');
 	this.load.image('giza', 'images/giza.png');
+	this.load.image('camel1', 'images/camel1.png');
+	this.load.image('camel2', 'images/camel2.png');
+	this.load.image('geveNom', 'images/geveNom.png');
+	this.load.image('geveOm', 'images/geveOm.png');
+	this.load.image('mummy', 'images/mummy.png');
+	this.load.image('artifact1', 'images/artifact1.png');
+	this.load.image('artifact2', 'images/artifact2.png');
+	this.load.image('artifact3', 'images/artifact3.png');
+	this.load.image('artifact4', 'images/artifact4.png');
+	this.load.image('artifact5', 'images/artifact5.png');
+	this.load.image('artifact6', 'images/artifact6.png');
+	this.load.image('artifact7', 'images/artifact7.png');
+	this.load.image('artifact8', 'images/artifact8.png');
+	this.load.image('artifact9', 'images/artifact9.png');
+	this.load.image('artifact10', 'images/artifact10.png');
 }
 
 function create() {
