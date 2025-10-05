@@ -26,6 +26,7 @@ const game = new Phaser.Game(config);
 let playerWallet = 500;
 let fancyStuffs = 0;
 let socialStatus = 100;
+let syphilis = 1;
 
 // Auction
 let currentBid = 10;
@@ -169,8 +170,12 @@ function update(time, delta) {
 	if (currentStage === 'giza') {
 		updateGiza();
 	}
-	socialStatus -= 0.01;
+	if (currentStage !== 'splash') {
+		socialStatus -= 0.01;
+		syphilis = syphilis < 1 ? 1 : syphilis + 0.005;
+	 }
 	//console.log("socialStatus: " + socialStatus);
+	console.log("syphilis: " + syphilis);
 }
 
 function placeBid() {
@@ -1102,6 +1107,7 @@ function updateGiza() {
 				exitToWorldMap(); 
 				console.log('-1'); // Collision with camel (bad)
 			} else if (object.objectType === 'mummy') {
+				syphilis -= 20;
 				console.log('+1'); // Collision with mummy (good)
 			}
 			
