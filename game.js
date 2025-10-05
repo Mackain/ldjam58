@@ -87,6 +87,9 @@ let hudSocialStatusBackground;
 let hudSyphilisBar;
 let hudSyphilisBackground;
 
+// Audio elements
+let auctionClubSound;
+
 // Sidescroller game variables
 let sidescrollerPlayer;
 let obstacles = [];
@@ -149,11 +152,19 @@ function preload() {
 	this.load.image('artifact10', 'images/artifact10.png');
 	this.load.image('splash', 'images/splash.png');
 	this.load.image('splashBlink', 'images/splashBlink.png');
+	
+	// Load audio files
+	this.load.audio('auctionClub', 'sounds/Auction-club.mp3');
+	this.load.audio('Flaxxx', 'sounds/Flaxxx.mp3');
 }
 
 function create() {
 	// Store scene reference for later use
 	this.sceneRef = this;
+	
+	// Create audio objects
+	auctionClubSound = this.sound.add('auctionClub', { volume: 0.5 });
+	flaxxxSound = this.sound.add('Flaxxx', { volume: 0.5 });
 	
 	// Initialize input handlers
 	setupInputHandlers(this);
@@ -259,12 +270,14 @@ function biddingWon() {
 	socialStatus += 20;
 	playerWallet -= currentBid;
 	walletText.setText(`Wallet: ${playerWallet} Gold`);
+	
 	resetAuctionForNextRound();
 	// Artifact cycle will automatically start the next round
 }
 
 function biddingLost() {
 	console.log("Bidding lost!");
+	
 	resetAuctionForNextRound();
 	// Artifact cycle will automatically start the next round
 }
@@ -305,6 +318,7 @@ function startAuctionTimer() {
 		
 		if (auctionTimer <= 0) {
 			// Stop the timer first
+			auctionClubSound.play();
 			stopAuctionTimer();
 			
 			// Show SOLD animation for 1 second, then determine winner
@@ -1076,7 +1090,11 @@ function updateSidescroller() {
 	// Handle pause timer for pesantShake sequence
 	if (isGamePaused) {
 		pauseTimer--;
+		if (!flaxxxSound.isPlaying) {
+			flaxxxSound.play();
+		}
 		if (pauseTimer <= 0) {
+			flaxxxSound.stop();
 			// Resume game after 3 seconds (180 frames at 60fps)
 			endPesantShakeSequence();
 		}
