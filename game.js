@@ -1002,6 +1002,8 @@ function enterCurrentLocation() {
 
 
 function exitToMinimap() {
+	isFirstRun = true;
+	isPesantInGame = false;
 	stopAuctionTimer();
 	setGameStage('minimap');
 }
