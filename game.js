@@ -101,6 +101,7 @@ let flaxxxSound;
 let syphilisSound;
 let worldMapMusic;
 let sidescrollerMusic;
+let gizaMusic;
 
 // Sidescroller game variables
 let sidescrollerPlayer;
@@ -171,6 +172,7 @@ function preload() {
 	this.load.audio('syphilis', 'sounds/Syphilis.mp3');
 	this.load.audio('worldMapMusic', 'sounds/Among-the-Cheese-and-Wine-(overworld).mp3');
 	this.load.audio('sidescrollerMusic', 'sounds/Early-Retirement-Fund-Withdrawal-chasing-peasants).mp3');
+	this.load.audio('gizaMusic', 'sounds/Mummy-Make-My-Day-(egypt).mp3');
 }
 
 function create() {
@@ -183,6 +185,7 @@ function create() {
 	flaxxxSound = this.sound.add('Flaxxx', { volume: sfxVolume });
 	worldMapMusic = this.sound.add('worldMapMusic', { volume: musicVolume, loop: true });
 	sidescrollerMusic = this.sound.add('sidescrollerMusic', { volume: musicVolume, loop: true });
+	gizaMusic = this.sound.add('gizaMusic', { volume: musicVolume, loop: true });
 	
 	// Initialize input handlers
 	setupInputHandlers(this);
@@ -1030,6 +1033,11 @@ function setupGizaUI() {
 	if (worldMapMusic && worldMapMusic.isPlaying) {
 		worldMapMusic.stop();
 	}
+	
+	// Start Giza music
+	if (gizaMusic && !gizaMusic.isPlaying) {
+		gizaMusic.play();
+	}
 
 	clearUI();
 	// no clue what this does but it happens everywhere so i guess it is needed here...
@@ -1455,6 +1463,11 @@ function exitToWorldMap() {
 	// Stop sidescroller music
 	if (sidescrollerMusic && sidescrollerMusic.isPlaying) {
 		sidescrollerMusic.stop();
+	}
+	
+	// Stop Giza music
+	if (gizaMusic && gizaMusic.isPlaying) {
+		gizaMusic.stop();
 	}
 	
 	isFirstRun = true;
