@@ -35,6 +35,13 @@ let auctionTimer = 5;
 let auctionTimerText;
 let timerInterval;
 let lastBidder = null; // 'player' or 'bot'
+let artifactDisplayPositionX = 520;
+let artifactDisplayPositionY = 200;
+
+// Artifact display system
+let currentArtifactSprite = null;
+let artifactAnimationState = 'none'; // 'flying_in', 'displayed', 'flying_out', 'none'
+let availableArtifacts = ['artifact1', 'artifact2', 'artifact3', 'artifact4', 'artifact5', 'artifact6', 'artifact7', 'artifact8', 'artifact9', 'artifact10'];
 
 
 // Game stage management
@@ -227,25 +234,35 @@ function biddingWon() {
 	socialStatus += 20;
 	playerWallet -= currentBid;
 	walletText.setText(`Wallet: ${playerWallet} Gold`);
-	currentBid = 10;
-	bidWinningProbability = 1;
-	playerBid = currentBid + 10; // Always 10 more than current bid
-	if (playerBidText) {
-		playerBidText.setText(`${playerBid} Gold`);
-	}
-	setupBiddingUI();
+	resetAuctionForNextRound();
+	// Artifact cycle will automatically start the next round
 }
 
 function biddingLost() {
 	console.log("Bidding lost!");
+	resetAuctionForNextRound();
+	// Artifact cycle will automatically start the next round
+}
+
+function resetAuctionForNextRound() {
 	currentBid = 10;
 	bidWinningProbability = 1;
 	playerBid = currentBid + 10; // Always 10 more than current bid
+	lastBidder = null;
+	setupBiddingUI();
+	
+	// Update UI elements that exist
 	if (playerBidText) {
 		playerBidText.setText(`${playerBid} Gold`);
 	}
-	setupBiddingUI();
-	// Could add UI feedback here later
+	if (currentBidText) {
+		currentBidText.setText(`${currentBid} Gold`);
+	}
+	if (bidButtonText) {
+		bidButtonText.setText(`Press space to place bid ${playerBid} Gold`);
+	}
+	
+	updateLeadingBidText();
 }
 
 // Timer management functions
@@ -267,11 +284,14 @@ function startAuctionTimer() {
 			
 			// Show SOLD animation for 1 second, then determine winner
 			showSoldAnimation(() => {
-				if (lastBidder === 'player') {
-					biddingWon();
-				} else {
-					biddingLost();
-				}
+				// Fly out current artifact before determining winner
+				flyOutArtifact(() => {
+					if (lastBidder === 'player') {
+						biddingWon();
+					} else {
+						biddingLost();
+					}
+				});
 			});
 		}
 	}, 1000);
@@ -347,6 +367,68 @@ function updateLeadingBidText() {
 		leadingBidText.setText('No bids yet');
 		leadingBidText.setFill('#ffffff'); 
 	}
+}
+
+// Artifact display functions
+function getRandomArtifact() {
+	const randomIndex = Math.floor(Math.random() * availableArtifacts.length);
+	return availableArtifacts[randomIndex];
+}
+
+function flyInArtifact() {
+	if (currentStage !== 'bidding') return;
+	
+	const scene = game.scene.scenes[0];
+	const selectedArtifact = getRandomArtifact();
+	
+	// Create artifact sprite starting from left side of screen
+	currentArtifactSprite = scene.add.image(-100, artifactDisplayPositionY, selectedArtifact);
+	//currentArtifactSprite.setScale(1.5); // Make it prominent
+	
+	artifactAnimationState = 'flying_in';
+	
+	// Animate to display position
+	scene.tweens.add({
+		targets: currentArtifactSprite,
+		x: artifactDisplayPositionX,
+		duration: 1000, // 1 second to fly in
+		ease: 'Power2',
+		onComplete: () => {
+			artifactAnimationState = 'displayed';
+			// Start auction timer only after artifact is in position
+			startAuctionTimer();
+		}
+	});
+}
+
+function flyOutArtifact(callback) {
+	if (!currentArtifactSprite || currentStage !== 'bidding') {
+		if (callback) callback();
+		return;
+	}
+	
+	const scene = game.scene.scenes[0];
+	artifactAnimationState = 'flying_out';
+	
+	// Animate to right side of screen
+	scene.tweens.add({
+		targets: currentArtifactSprite,
+		x: 900, // Off screen to the right
+		duration: 1000, // 1 second to fly out
+		ease: 'Power2',
+		onComplete: () => {
+			if (currentArtifactSprite) {
+				currentArtifactSprite.destroy();
+				currentArtifactSprite = null;
+			}
+			artifactAnimationState = 'none';
+			// Start next artifact cycle
+			if (currentStage === 'bidding') {
+				flyInArtifact();
+			}
+			if (callback) callback();
+		}
+	});
 }
 
 // Input Handler System
@@ -560,8 +642,8 @@ function setupBiddingUI() {
 	// Initialize playerBid to be current bid + 10
 	playerBid = currentBid + 10;
 	
-	// Start the auction timer
-	startAuctionTimer();
+	// Start the artifact display cycle (this will start the auction timer when artifact is in position)
+	flyInArtifact();
 	
 	// Update leading bid text initially
 	updateLeadingBidText();
@@ -1149,6 +1231,13 @@ function resetAuction() {
 	auctionTimerText;
 	timerInterval;
 	lastBidder = null; // 'player' or 'bot'
+	
+	// Clean up artifact system
+	if (currentArtifactSprite) {
+		currentArtifactSprite.destroy();
+		currentArtifactSprite = null;
+	}
+	artifactAnimationState = 'none';
 }
 
 // Animation helper functions
