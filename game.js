@@ -22,6 +22,10 @@ const config = {
 
 const game = new Phaser.Game(config);
 
+// Volume variables
+let musicVolume = 0.5;
+let sfxVolume = 0.5;
+
 // Game variables
 let playerWallet = 500;
 let fancyStuffs = 0;
@@ -95,6 +99,7 @@ let hudSyphilisBackground;
 let auctionClubSound;
 let flaxxxSound;
 let syphilisSound;
+let worldMapMusic;
 
 // Sidescroller game variables
 let sidescrollerPlayer;
@@ -163,6 +168,7 @@ function preload() {
 	this.load.audio('auctionClub', 'sounds/Auction-club.mp3');
 	this.load.audio('Flaxxx', 'sounds/Flaxxx.mp3');
 	this.load.audio('syphilis', 'sounds/Syphilis.mp3');
+	this.load.audio('worldMapMusic', 'sounds/Among-the-Cheese-and-Wine-(overworld).mp3');
 }
 
 function create() {
@@ -170,9 +176,10 @@ function create() {
 	this.sceneRef = this;
 	
 	// Create audio objects
-	auctionClubSound = this.sound.add('auctionClub', { volume: 0.5 });
-	syphilisSound = this.sound.add('syphilis', { volume: 0.5 });
-	flaxxxSound = this.sound.add('Flaxxx', { volume: 0.5 });
+	auctionClubSound = this.sound.add('auctionClub', { volume: sfxVolume });
+	syphilisSound = this.sound.add('syphilis', { volume: sfxVolume });
+	flaxxxSound = this.sound.add('Flaxxx', { volume: sfxVolume });
+	worldMapMusic = this.sound.add('worldMapMusic', { volume: musicVolume, loop: true });
 	
 	// Initialize input handlers
 	setupInputHandlers(this);
@@ -667,12 +674,22 @@ function setupWorldMapUI() {
 	// Create HUD
 	createHUD();
 	
+	// Start world map music
+	if (worldMapMusic && !worldMapMusic.isPlaying) {
+		worldMapMusic.play();
+	}
+	
 	mimapElements = [greve, auctionZone, walletText];
 }
 
 let handSprite;
 
 function setupBiddingUI() {
+	// Stop world map music
+	if (worldMapMusic && worldMapMusic.isPlaying) {
+		worldMapMusic.stop();
+	}
+	
 	// Clear existing elements
 	clearUI();
 	
@@ -886,6 +903,11 @@ function updateHUD() {
 
 // Sidescroller functions
 function setupSidescrollerUI() {
+	// Stop world map music
+	if (worldMapMusic && worldMapMusic.isPlaying) {
+		worldMapMusic.stop();
+	}
+	
 	clearUI();
 	const scene = game.scene.scenes[0];
 
@@ -996,6 +1018,10 @@ function setupSidescrollerUI() {
 let greveOmNomSprite;
 
 function setupGizaUI() {
+	// Stop world map music
+	if (worldMapMusic && worldMapMusic.isPlaying) {
+		worldMapMusic.stop();
+	}
 
 	clearUI();
 	// no clue what this does but it happens everywhere so i guess it is needed here...
