@@ -853,7 +853,7 @@ function updateHUD() {
 function setupSidescrollerUI() {
 	clearUI();
 	const scene = game.scene.scenes[0];
-	
+
 	// Reset game state
 	obstacles = [];
 	isJumping = false;
@@ -1248,7 +1248,7 @@ function updateGiza() {
 
 function spawnObstacle(scene) {
 	// Create a hay obstacle
-	const obstacle = scene.add.image(850, groundY - 15, 'hay');
+	const obstacle = scene.add.image(Math.random() * 300 + 800, groundY - 15, 'hay');
 	obstacle.setScale(1.0); // Adjust size as needed
 	obstacle.obstacleType = 'haystack'; // Mark as haystack obstacle
 	obstacles.push(obstacle);
@@ -1256,7 +1256,7 @@ function spawnObstacle(scene) {
 
 function spawnPesant(scene) {
 	// Create an animated bonde peasant
-	const pesant = scene.add.sprite(850, groundY - 15, 'bonde1');
+	const pesant = scene.add.sprite(Math.random() * 300 + 800, groundY - 15, 'bonde1');
 	pesant.setScale(1.2); // Make slightly larger
 	pesant.anims.play('bonde', true); // Start bonde walking animation
 	pesant.jumpVelocity = -10;
