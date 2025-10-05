@@ -133,7 +133,7 @@ function update(time, delta) {
 
 	// Update giza game
 	if (currentStage === 'giza') {
-		//updateGiza();
+		updateGiza();
 	}
 }
 
@@ -348,8 +348,18 @@ function setupInputHandlers(scene) {
 	inputHandlers.sidescroller = {
 		'SPACE': () => jump(),
 		'UP': () => jump(),
+		'ENTER': () => jump(),
 		'ESC': () => exitToMinimap()
 	};
+
+	// Giza stage input handler
+	inputHandlers.giza = {
+		'ESC': () => exitToMinimap(),
+		'LEFT': () => slideLeft(),
+		'RIGHT': () => slideRight()
+	};
+
+
 	
 	// Example: Menu stage input handler (for future use)
 	inputHandlers.menu = {
@@ -707,6 +717,14 @@ function jump() {
 	}
 }
 
+function slideLeft() {
+	console.log('left');
+}
+
+function slideRight() {
+	console.log('right');
+}
+
 let isFirstRun = true;
 
 function updateSidescroller() {
@@ -845,6 +863,10 @@ function updateSidescroller() {
 			}
 		}
 	}
+}
+
+function updateGiza() {
+
 }
 
 function spawnObstacle(scene) {
