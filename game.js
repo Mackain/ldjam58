@@ -102,6 +102,7 @@ let syphilisSound;
 let worldMapMusic;
 let sidescrollerMusic;
 let gizaMusic;
+let auctionMusic;
 
 // Sidescroller game variables
 let sidescrollerPlayer;
@@ -173,6 +174,7 @@ function preload() {
 	this.load.audio('worldMapMusic', 'sounds/Among-the-Cheese-and-Wine-(overworld).mp3');
 	this.load.audio('sidescrollerMusic', 'sounds/Early-Retirement-Fund-Withdrawal-chasing-peasants).mp3');
 	this.load.audio('gizaMusic', 'sounds/Mummy-Make-My-Day-(egypt).mp3');
+	this.load.audio('auctionMusic', 'sounds/La-Collection-de-Excellance-(auction-house).mp3');
 }
 
 function create() {
@@ -186,6 +188,7 @@ function create() {
 	worldMapMusic = this.sound.add('worldMapMusic', { volume: musicVolume, loop: true });
 	sidescrollerMusic = this.sound.add('sidescrollerMusic', { volume: musicVolume, loop: true });
 	gizaMusic = this.sound.add('gizaMusic', { volume: musicVolume, loop: true });
+	auctionMusic = this.sound.add('auctionMusic', { volume: musicVolume, loop: true });
 	
 	// Initialize input handlers
 	setupInputHandlers(this);
@@ -694,6 +697,11 @@ function setupBiddingUI() {
 	// Stop world map music
 	if (worldMapMusic && worldMapMusic.isPlaying) {
 		worldMapMusic.stop();
+	}
+	
+	// Start auction music
+	if (auctionMusic && !auctionMusic.isPlaying) {
+		auctionMusic.play();
 	}
 	
 	// Clear existing elements
@@ -1468,6 +1476,11 @@ function exitToWorldMap() {
 	// Stop Giza music
 	if (gizaMusic && gizaMusic.isPlaying) {
 		gizaMusic.stop();
+	}
+	
+	// Stop auction music
+	if (auctionMusic && auctionMusic.isPlaying) {
+		auctionMusic.stop();
 	}
 	
 	isFirstRun = true;
