@@ -152,7 +152,7 @@ function update(time, delta) {
 		updateGiza();
 	}
 	socialStatus -= 0.01;
-	console.log("socialStatus: " + socialStatus);
+	//console.log("socialStatus: " + socialStatus);
 }
 
 function placeBid() {
@@ -296,18 +296,17 @@ function showBotBidHand() {
 	const randomX = Math.random() * 700 + 50; // Between 50 and 750 to keep within bounds
 	  
 	// Position hand in audience area (around middle to lower part of screen)
-	const handY = Math.random() * 200 + 300; // Between 300 and 500 pixels down
-	
-	// Create the hand sprite
-	const handSprite = scene.add.image(randomX, handY, 'auqhand');
-	
-	// Make sure the hand appears above the audience animation
-	handSprite.setDepth(10);
+	const handY = Math.random() * 50 + 450; // Between 450 and 500 pixels down
+
+	//handSprite = scene.add.image(randomX, handY, 'auqhand');
+	handSprite.x = randomX;
+	handSprite.y = handY;
 	
 	// Remove the hand after 1 second (1000 milliseconds)
 	setTimeout(() => {
 		if (handSprite && handSprite.scene) {
-			handSprite.destroy();
+			handSprite.x = -100; // Move hand off-screen
+			//handSprite.destroy(); // Todo: Flytta handen åt helvete
 		}
 	}, 1000);
 }
@@ -493,6 +492,8 @@ function setupWorldMapUI() {
 	mimapElements = [greve, auctionZone, walletText];
 }
 
+let handSprite;
+
 function setupBiddingUI() {
 	// Clear existing elements
 	clearUI();
@@ -573,6 +574,9 @@ function setupBiddingUI() {
 		fill: '#ecf0f1',
 		fontFamily: 'Arial'
 	}).setOrigin(0.5);
+
+	// Create the hand sprite
+	handSprite = scene.add.image(-100, -100, 'auqhand');
 
 	// Leading bid display
 	leadingBidText = scene.add.text(400, 470, '', {
