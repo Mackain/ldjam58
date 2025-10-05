@@ -234,7 +234,7 @@ function update(time, delta) {
 		updateHUD();
 	 }
 	//console.log("socialStatus: " + socialStatus);
-	console.log("syphilis: " + syphilis);
+	//console.log("syphilis: " + syphilis);
 	if (syphilis > 100) {
 		// Game over logic here
 		console.log("Game Over: Syphilis reached critical level!");
@@ -963,17 +963,16 @@ function setupSidescrollerUI() {
 	pauseTimer = 0;
 	isCollisionImmune = false;
 	immunityTimer = 0;
-	
-	// Create background (simple color for now)
-	scene.add.rectangle(400, 300, 800, 600, 0x87CEEB); // Sky blue
-	
-	// Create ground
-	scene.add.rectangle(400, 550, 800, 100, 0x8B4513); // Brown ground
+
+	// Animated background
+	auctionBackground = scene.add.sprite(400, 300, 'england');
+	auctionBackground.setDisplaySize(800, 600);
+
 	
 	// Create player using same sprite as worldMap
 	sidescrollerPlayer = scene.add.sprite(100, groundY - 25, 'greve1');
 	sidescrollerPlayer.setScale(1.5); // Make slightly larger
-	
+	sidescrollerPlayer.setDepth(100);
 	// Create sidescroller-specific animations if not already created
 	if (!sidescrollerAnimationsCreated) {
 		// Create sidescroller walking animation with greve sequence
@@ -1224,6 +1223,11 @@ function updateSidescroller() {
 		obstacleSpawnTimer = 0;
 	}
 
+	if (Math.ceil(Math.random() * 100) == 8) { // completely random
+		spawnTree(scene);
+		//obstacleSpawnTimer = 0;
+	}
+
 	if (obstacleSpawnTimer === 80 && !isPesantInGame) { // Every 2 seconds at 60fps
 		spawnPesant(scene);
 		isPesantInGame = true;
@@ -1368,6 +1372,19 @@ function spawnObstacle(scene) {
 	obstacle.obstacleType = 'haystack'; // Mark as haystack obstacle
 	obstacles.push(obstacle);
 }
+
+function spawnTree(scene) {
+	// Create a hay obstacle
+	const obstacle = scene.add.image(Math.random() * 300 + 800, 250, 'englandTree');
+	obstacle.setScale(1.0); // Adjust size as needed
+	obstacle.obstacleType = 'tree'; // Mark as haystack obstacle
+	obstacle.setDepth(1);
+	obstacles.push(obstacle);
+	console.log("tree ")
+}
+
+
+
 
 function spawnPesant(scene) {
 	// Create an animated bonde peasant
