@@ -85,6 +85,11 @@ let sidescrollerAnimationsCreated = false;
 let isCollisionImmune = false;
 let immunityTimer = 0;
 
+// Giza game variables
+let gizaFallingObjects = [];
+let gizaSpawnTimer = 0;
+let gizaAnimationsCreated = false;
+
 function preload() {
 	// Load assets here
 	this.load.image('greve1', 'images/greve1.png');
@@ -110,8 +115,8 @@ function preload() {
 	this.load.image('giza', 'images/giza.png');
 	this.load.image('camel1', 'images/camel1.png');
 	this.load.image('camel2', 'images/camel2.png');
-	this.load.image('geveNom', 'images/geveNom.png');
-	this.load.image('geveOm', 'images/geveOm.png');
+	this.load.image('greveNom', 'images/greveNom.png');
+	this.load.image('greveOm', 'images/greveOm.png');
 	this.load.image('mummy', 'images/mummy.png');
 	this.load.image('artifact1', 'images/artifact1.png');
 	this.load.image('artifact2', 'images/artifact2.png');
@@ -712,6 +717,8 @@ function setupSidescrollerUI() {
 
 
 // Giza functions
+let greveOmNomSprite;
+
 function setupGizaUI() {
 
 	clearUI();
@@ -722,6 +729,35 @@ function setupGizaUI() {
 	auctionBackground = scene.add.sprite(400, 300, 'giza');
 	auctionBackground.setDisplaySize(800, 600);
 
+	// Create greveOmNom animation
+	scene.anims.create({
+		key: 'greveOmNom',
+		frames: [
+			{ key: 'greveNom' },
+			{ key: 'greveOm' }
+		],
+		frameRate: 4,
+		repeat: -1
+	});
+
+	// Create camel animation
+	if (!gizaAnimationsCreated) {
+		scene.anims.create({
+			key: 'camel',
+			frames: [
+				{ key: 'camel1' },
+				{ key: 'camel2' }
+			],
+			frameRate: 6,
+			repeat: -1
+		});
+		gizaAnimationsCreated = true;
+	}
+
+	// Create greveOmNom sprite at bottom of screen
+	greveOmNomSprite = scene.add.sprite(400, 550, 'greveNom');
+	greveOmNomSprite.anims.play('greveOmNom', true);
+
 	// Exit instruction
 	scene.add.text(50, 80, 'Press ESC to return to map', {
 		fontSize: '16px',
@@ -729,6 +765,36 @@ function setupGizaUI() {
 		fontFamily: 'Arial'
 	});
 
+}
+
+function spawnCamel() {
+	const scene = game.scene.scenes[0];
+	const randomX = Math.random() * 800; // Random x position across screen width
+	
+	const camel = scene.add.sprite(randomX, -50, 'camel1'); // Start above screen
+	camel.anims.play('camel', true);
+	camel.objectType = 'camel';
+	camel.fallSpeed = 3 + Math.random() * 2; // Random speed between 3-5
+	
+	gizaFallingObjects.push(camel);
+}
+
+function spawnMummy() {
+	const scene = game.scene.scenes[0];
+	const randomX = Math.random() * 800; // Random x position across screen width
+	
+	const mummy = scene.add.sprite(randomX, -50, 'mummy'); // Start above screen
+	mummy.objectType = 'mummy';
+	mummy.fallSpeed = 2 + Math.random() * 2; // Random speed between 2-4
+	
+	gizaFallingObjects.push(mummy);
+}
+
+function checkGizaCollision(player, object) {
+	const playerBounds = player.getBounds();
+	const objectBounds = object.getBounds();
+	
+	return Phaser.Geom.Rectangle.Overlaps(playerBounds, objectBounds);
 }
 
 let isPesantInGame = false;
@@ -741,10 +807,14 @@ function jump() {
 }
 
 function slideLeft() {
+	// Should move greveOnNom to the left
+	greveOmNomSprite.x -= greveOmNomSprite.x < 0 ? 0 : 10;
 	console.log('left');
 }
 
 function slideRight() {
+	// Should move greveOnNom to the right
+	greveOmNomSprite.x += greveOmNomSprite.x > 800 ? 0 : 10;
 	console.log('right');
 }
 
@@ -889,7 +959,46 @@ function updateSidescroller() {
 }
 
 function updateGiza() {
-
+	if (currentStage !== 'giza' || !greveOmNomSprite) return;
+	
+	// Spawn objects at random intervals
+	gizaSpawnTimer++;
+	if (gizaSpawnTimer > 90 + Math.random() * 120) { // Random spawn between 1.5-3.5 seconds at 60fps
+		// Randomly spawn either camel or mummy
+		if (Math.random() < 0.6) { // 60% chance for camel (obstacle)
+			spawnCamel();
+		} else { // 40% chance for mummy (collectible)
+			spawnMummy();
+		}
+		gizaSpawnTimer = 0;
+	}
+	
+	// Update falling objects
+	for (let i = gizaFallingObjects.length - 1; i >= 0; i--) {
+		const object = gizaFallingObjects[i];
+		
+		// Move object down
+		object.y += object.fallSpeed;
+		
+		// Check collision with player
+		if (checkGizaCollision(greveOmNomSprite, object)) {
+			if (object.objectType === 'camel') {
+				exitToWorldMap(); 
+				console.log('-1'); // Collision with camel (bad)
+			} else if (object.objectType === 'mummy') {
+				console.log('+1'); // Collision with mummy (good)
+			}
+			
+			// Remove the object after collision
+			object.destroy();
+			gizaFallingObjects.splice(i, 1);
+		}
+		// Remove objects that have fallen off screen
+		else if (object.y > 650) {
+			object.destroy();
+			gizaFallingObjects.splice(i, 1);
+		}
+	}
 }
 
 function spawnObstacle(scene) {
