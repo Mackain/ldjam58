@@ -45,9 +45,13 @@ let availableArtifacts = ['artifact1', 'artifact2', 'artifact3', 'artifact4', 'a
 
 
 // Game stage management
-let currentStage = 'worldMap';
+let currentStage = 'splash';
 let inputHandlers = {};
 let activeInputHandler = null;
+
+// Splash screen variables
+let splashSprite = null;
+let splashAnimationsCreated = false;
 
 // WorldMap variables
 let greve;
@@ -135,6 +139,8 @@ function preload() {
 	this.load.image('artifact8', 'images/artifact8.png');
 	this.load.image('artifact9', 'images/artifact9.png');
 	this.load.image('artifact10', 'images/artifact10.png');
+	this.load.image('splash', 'images/splash.png');
+	this.load.image('splashBlink', 'images/splashBlink.png');
 }
 
 function create() {
@@ -144,8 +150,8 @@ function create() {
 	// Initialize input handlers
 	setupInputHandlers(this);
 	
-	// Start with worldMap
-	setGameStage('worldMap');
+	// Start with splash screen
+	setGameStage('splash');
 }
 
 function update(time, delta) {
@@ -433,6 +439,11 @@ function flyOutArtifact(callback) {
 
 // Input Handler System
 function setupInputHandlers(scene) {
+	// Splash screen input handler
+	inputHandlers.splash = {
+		'SPACE': () => setGameStage('worldMap')
+	};
+	
 	// WorldMap stage input handler
 	inputHandlers.worldMap = {
 		'UP': () => { navigateToLocation('prev'); startWalkAnimation(); },
@@ -509,7 +520,9 @@ function setGameStage(stageName) {
 	console.log(`Game stage changed to: ${stageName}`);
 	
 	// Clear existing UI and set up new stage
-	if (stageName === 'worldMap') {
+	if (stageName === 'splash') {
+		setupSplashUI();
+	} else if (stageName === 'worldMap') {
 		setupWorldMapUI();
 	} else if (stageName === 'bidding') {
 		setupBiddingUI();
@@ -518,6 +531,32 @@ function setGameStage(stageName) {
 	} else if (stageName === 'giza') {
 		setupGizaUI();
 	}
+}
+
+function setupSplashUI() {
+	// Clear existing elements
+	clearUI();
+	
+	const scene = game.scene.scenes[0];
+	
+	// Create splash animation if not already created
+	if (!splashAnimationsCreated) {
+		scene.anims.create({
+			key: 'splash_blink',
+			frames: [
+				{ key: 'splash' },
+				{ key: 'splashBlink' }
+			],
+			frameRate: 2, // Slow blink effect
+			repeat: -1
+		});
+		splashAnimationsCreated = true;
+	}
+	
+	// Create splash sprite centered on screen
+	splashSprite = scene.add.sprite(400, 300, 'splash');
+	splashSprite.setDisplaySize(800, 600); // Full screen
+	splashSprite.anims.play('splash_blink', true);
 }
 
 function setupWorldMapUI() {
@@ -560,11 +599,6 @@ function setupWorldMapUI() {
 	
 	// Location display
 	const location = mapLocations[currentLocationIndex];
-	scene.add.text(50, 500, `Location: ${location.name}`, {
-		fontSize: '18px',
-		fill: '#ffff00',
-		fontFamily: 'Arial'
-	});
 	
 	// Wallet display (always visible)
 	walletText = scene.add.text(650, 30, `Wallet: ${playerWallet} Gold`, {
