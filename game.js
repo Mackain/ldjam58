@@ -138,15 +138,15 @@ function update(time, delta) {
 }
 
 function placeBid() {
-	// Check if player has enough money to bid $10 more
+	// Check if player has enough money to bid 10 more gold
 	if (lastBidder === "player") {
 		return; 
 	}
 	if (playerWallet >= currentBid + 10) {
-		// Increase current bid by $10
+		// Increase current bid by 10 gold
 		currentBid += 10;
-		currentBidText.setText(`$${currentBid}`);
-		walletText.setText(`Wallet: $${playerWallet}`);
+		currentBidText.setText(`${currentBid} Gold`);
+		walletText.setText(`Wallet: ${playerWallet} Gold`);
 		
 		// Player placed a bid - reset timer
 		lastBidder = 'player';
@@ -158,11 +158,11 @@ function placeBid() {
 			// Update player bid display to show next potential bid
 		playerBid = currentBid + 10;
 		if (playerBidText) {
-			playerBidText.setText(`$${playerBid}`);
+			playerBidText.setText(`${playerBid} Gold`);
 		}
 		// Update bid button text
 		if (bidButtonText) {
-			bidButtonText.setText(`Press space to place bid ₣${playerBid}`);
+			bidButtonText.setText(`Press space to place bid ${playerBid} Gold`);
 		}
 	}
 }
@@ -173,11 +173,11 @@ function botPlaceBid() {
 		let botBidChance = Math.floor(Math.random() * 10) + 1;
 		if (botBidChance > bidWinningProbability) {
 			currentBid += 10;
-			currentBidText.setText(`$${currentBid}`);
+			currentBidText.setText(`${currentBid} Gold`);
 			bidWinningProbability++;
 			console.log("botBidChance: " + botBidChance);
-			console.log("Bot places a bid. Current bid is now $" + currentBid);
-			
+			console.log("Bot places a bid. Current bid is now " + currentBid + " Gold");
+
 			// Show bot bid hand in audience
 			showBotBidHand();
 			
@@ -188,7 +188,7 @@ function botPlaceBid() {
 			// Update player bid and button text
 			playerBid = currentBid + 10;
 			if (bidButtonText) {
-				bidButtonText.setText(`Press space to place bid ₣${playerBid}`);
+				bidButtonText.setText(`Press space to place bid ${playerBid} Gold`);
 			}
 		} else {
 			console.log("botBidChance: " + botBidChance);
@@ -202,12 +202,12 @@ function biddingWon() {
 	console.log("Bidding won!");	
 	fancyStuffs++;
 	playerWallet -= currentBid;
-	walletText.setText(`Wallet: $${playerWallet}`);
+	walletText.setText(`Wallet: ${playerWallet} Gold`);
 	currentBid = 10;
 	bidWinningProbability = 1;
 	playerBid = currentBid + 10; // Always 10 more than current bid
 	if (playerBidText) {
-		playerBidText.setText(`$${playerBid}`);
+		playerBidText.setText(`${playerBid} Gold`);
 	}
 	setupBiddingUI();
 }
@@ -218,7 +218,7 @@ function biddingLost() {
 	bidWinningProbability = 1;
 	playerBid = currentBid + 10; // Always 10 more than current bid
 	if (playerBidText) {
-		playerBidText.setText(`$${playerBid}`);
+		playerBidText.setText(`${playerBid} Gold`);
 	}
 	setupBiddingUI();
 	// Could add UI feedback here later
@@ -316,13 +316,13 @@ function updateLeadingBidText() {
 	
 	if (lastBidder === 'player') {
 		leadingBidText.setText('You have the leading bid');
-		leadingBidText.setFill('#ffffff'); // Green color for player leading
+		leadingBidText.setFill('#ffffff'); 
 	} else if (lastBidder === 'bot') {
 		leadingBidText.setText('Another count has the leading bid');
-		leadingBidText.setFill('#ffffff'); // Red color for bot leading
+		leadingBidText.setFill('#ffffff'); 
 	} else {
 		leadingBidText.setText('No bids yet');
-		leadingBidText.setFill('#ffffff'); // Orange color for no bids
+		leadingBidText.setFill('#ffffff'); 
 	}
 }
 
@@ -462,7 +462,7 @@ function setupMinimapUI() {
 	});
 	
 	// Wallet display (always visible)
-	walletText = scene.add.text(650, 30, `Wallet: $${playerWallet}`, {
+	walletText = scene.add.text(650, 30, `Wallet: ${playerWallet} Gold`, {
 		fontSize: '20px',
 		fill: '#ffffff',
 		fontFamily: 'Arial'
@@ -526,7 +526,7 @@ function setupBiddingUI() {
 	}).setOrigin(0.5);
 
 	// Wallet display (top right)
-	walletText = scene.add.text(650, 30, `Wallet: $${playerWallet}`, {
+	walletText = scene.add.text(600, 30, `Wallet: ${playerWallet} Gold`, {
 		fontSize: '24px',
 		fill: '#ecf0f1',
 		fontFamily: 'Arial'
@@ -542,13 +542,13 @@ function setupBiddingUI() {
 	updateLeadingBidText();
 
 	// Current bid display (center)
-	scene.add.text(400, 200, `Current Bid: `, {
+	scene.add.text(450, 130, `Current Bid: `, {
 		fontSize: '32px',
 		fill: '#ecf0f1',
 		fontFamily: 'Arial'
 	}).setOrigin(0.5);
 
-	currentBidText = scene.add.text(520, 200, `₣${currentBid}`, {
+	currentBidText = scene.add.text(600, 130, `${currentBid} Gold`, {
 		fontSize: '48px',
 		fontSize: '32px',
 		fill: '#ecf0f1',
@@ -556,7 +556,7 @@ function setupBiddingUI() {
 	}).setOrigin(0.5);
 
 	// Leading bid display
-	leadingBidText = scene.add.text(400, 250, '', {
+	leadingBidText = scene.add.text(400, 470, '', {
 		fontSize: '20px',
 		fill: '#f39c12',
 		fontFamily: 'Arial',
@@ -564,7 +564,7 @@ function setupBiddingUI() {
 	}).setOrigin(0.5);
 
 	// Place bid instruction (centered)
-	bidButtonText = scene.add.text(400, 500, `Press space to place bid ₣${playerBid}`, {
+	bidButtonText = scene.add.text(400, 500, `Press space to place bid ${playerBid} Gold`, {
 		fontSize: '20px',
 		fill: '#ffffff',
 		fontFamily: 'Arial'
@@ -680,7 +680,7 @@ function setupSidescrollerUI() {
 	});
 	
 	// Wallet display
-	walletText = scene.add.text(650, 30, `Wallet: $${playerWallet}`, {
+	walletText = scene.add.text(650, 30, `Wallet: ${playerWallet} Gold`, {
 		fontSize: '20px',
 		fill: '#000000',
 		fontFamily: 'Arial'
@@ -917,9 +917,9 @@ function startPesantShakeSequence() {
 function endPesantShakeSequence() {
 	if (!sidescrollerPlayer) return;
 
-	playerWallet += Math.floor(Math.random() * 15 + 5); // Random between $5 and $20
-	walletText.setText(`Wallet: $${playerWallet}`);
-	
+	playerWallet += Math.floor(Math.random() * 15 + 5); // Random between 5 Gold and 20 Gold
+	walletText.setText(`Wallet: ${playerWallet} Gold`);
+
 	// Resume the game
 	isGamePaused = false;
 	pauseTimer = 0;
