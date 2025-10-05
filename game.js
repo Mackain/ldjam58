@@ -93,6 +93,8 @@ let hudSyphilisBackground;
 
 // Audio elements
 let auctionClubSound;
+let flaxxxSound;
+let syphilisSound;
 
 // Sidescroller game variables
 let sidescrollerPlayer;
@@ -160,6 +162,7 @@ function preload() {
 	// Load audio files
 	this.load.audio('auctionClub', 'sounds/Auction-club.mp3');
 	this.load.audio('Flaxxx', 'sounds/Flaxxx.mp3');
+	this.load.audio('syphilis', 'sounds/Syphilis.mp3');
 }
 
 function create() {
@@ -168,6 +171,7 @@ function create() {
 	
 	// Create audio objects
 	auctionClubSound = this.sound.add('auctionClub', { volume: 0.5 });
+	syphilisSound = this.sound.add('syphilis', { volume: 0.5 });
 	flaxxxSound = this.sound.add('Flaxxx', { volume: 0.5 });
 	
 	// Initialize input handlers
@@ -602,6 +606,11 @@ function setupSplashUI() {
 	splashSprite = scene.add.sprite(400, 300, 'splash');
 	splashSprite.setDisplaySize(800, 600); // Full screen
 	splashSprite.anims.play('splash_blink', true);
+	
+	// Play syphilis sound when splash screen appears
+	if (syphilisSound) {
+		syphilisSound.play();
+	}
 }
 
 function setupWorldMapUI() {
