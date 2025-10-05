@@ -103,6 +103,8 @@ let worldMapMusic;
 let sidescrollerMusic;
 let gizaMusic;
 let auctionMusic;
+let mummyMunchSound;
+let camelCrushSound;
 
 // Sidescroller game variables
 let sidescrollerPlayer;
@@ -175,6 +177,8 @@ function preload() {
 	this.load.audio('sidescrollerMusic', 'sounds/Early-Retirement-Fund-Withdrawal-chasing-peasants).mp3');
 	this.load.audio('gizaMusic', 'sounds/Mummy-Make-My-Day-(egypt).mp3');
 	this.load.audio('auctionMusic', 'sounds/La-Collection-de-Excellance-(auction-house).mp3');
+	this.load.audio('mummyMunchSound', 'sounds/Mummy-munch.mp3');
+	this.load.audio('camelCrushSound', 'sounds/Camel-crush.mp3');
 }
 
 function create() {
@@ -189,6 +193,8 @@ function create() {
 	sidescrollerMusic = this.sound.add('sidescrollerMusic', { volume: musicVolume, loop: true });
 	gizaMusic = this.sound.add('gizaMusic', { volume: musicVolume, loop: true });
 	auctionMusic = this.sound.add('auctionMusic', { volume: musicVolume, loop: true });
+	mummyMunchSound = this.sound.add('mummyMunchSound', { volume: sfxVolume * 1.2 });
+	camelCrushSound = this.sound.add('camelCrushSound', { volume: sfxVolume });
 	
 	// Initialize input handlers
 	setupInputHandlers(this);
@@ -1316,9 +1322,11 @@ function updateGiza() {
 		// Check collision with player
 		if (checkGizaCollision(greveOmNomSprite, object)) {
 			if (object.objectType === 'camel') {
+				camelCrushSound.play(); // Play camel crush sound
 				exitToWorldMap(); 
 				console.log('-1'); // Collision with camel (bad)
 			} else if (object.objectType === 'mummy') {
+				mummyMunchSound.play(); // Play mummy munch sound
 				syphilis -= 20;
 				console.log('+1'); // Collision with mummy (good)
 			}
