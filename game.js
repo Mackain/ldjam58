@@ -44,6 +44,10 @@ let currentArtifactSprite = null;
 let artifactAnimationState = 'none'; // 'flying_in', 'displayed', 'flying_out', 'none'
 let availableArtifacts = ['artifact1', 'artifact2', 'artifact3', 'artifact4', 'artifact5', 'artifact6', 'artifact7', 'artifact8', 'artifact9', 'artifact10'];
 
+// Auction state management
+let isExitingAuction = false;
+let soldAnimationTimeout = null;
+
 
 // Game stage management
 let currentStage = 'splash';
@@ -265,6 +269,9 @@ function botPlaceBid() {
 }
 
 function biddingWon() {
+	// Don't execute if we're exiting
+	if (isExitingAuction) return;
+	
 	console.log("Bidding won!");	
 	fancyStuffs++;
 	socialStatus += 20;
@@ -273,9 +280,7 @@ function biddingWon() {
 	
 	resetAuctionForNextRound();
 	// Artifact cycle will automatically start the next round
-}
-
-function biddingLost() {
+}function biddingLost() {
 	console.log("Bidding lost!");
 	
 	resetAuctionForNextRound();
@@ -305,6 +310,9 @@ function resetAuctionForNextRound() {
 
 // Timer management functions
 function startAuctionTimer() {
+	// Don't start timer if we're exiting
+	if (isExitingAuction) return;
+	
 	auctionTimer = 5;
 	lastBidder = null;
 	if (timerInterval) {
@@ -385,9 +393,16 @@ function showSoldAnimation(callback) {
 		auctionBackground.setTexture('auqSOLD');
 	}
 	
+	// Clear any existing sold animation timeout
+	if (soldAnimationTimeout) {
+		clearTimeout(soldAnimationTimeout);
+	}
+	
 	// Show SOLD for 1 second, then call the callback
-	setTimeout(() => {
-		if (callback) {
+	soldAnimationTimeout = setTimeout(() => {
+		soldAnimationTimeout = null;
+		// Only execute callback if we're not exiting
+		if (callback && !isExitingAuction) {
 			callback();
 		}
 	}, 1000);
@@ -433,6 +448,9 @@ function flyInArtifact() {
 		duration: 1000, // 1 second to fly in
 		ease: 'Power2',
 		onComplete: () => {
+			// Don't execute if we're exiting
+			if (isExitingAuction) return;
+			
 			artifactAnimationState = 'displayed';
 			// Start auction timer only after artifact is in position
 			startAuctionTimer();
@@ -456,6 +474,9 @@ function flyOutArtifact(callback) {
 		duration: 1000, // 1 second to fly out
 		ease: 'Power2',
 		onComplete: () => {
+			// Don't execute if we're exiting
+			if (isExitingAuction) return;
+			
 			if (currentArtifactSprite) {
 				currentArtifactSprite.destroy();
 				currentArtifactSprite = null;
@@ -465,7 +486,7 @@ function flyOutArtifact(callback) {
 			if (currentStage === 'bidding') {
 				flyInArtifact();
 			}
-			if (callback) callback();
+			if (callback && !isExitingAuction) callback();
 		}
 	});
 }
@@ -1404,7 +1425,23 @@ function exitToWorldMap() {
 }
 
 function resetAuction() {
+	// Set exit flag to prevent callbacks from executing
+	isExitingAuction = true;
+	
 	stopAuctionTimer();
+	
+	// Clear sold animation timeout
+	if (soldAnimationTimeout) {
+		clearTimeout(soldAnimationTimeout);
+		soldAnimationTimeout = null;
+	}
+	
+	// Stop any running Phaser tweens on artifacts
+	const scene = game.scene.scenes[0];
+	if (scene && scene.tweens) {
+		scene.tweens.killAll();
+	}
+	
 	currentBid = 10;
 	playerBid = 20; // Will be updated to currentBid + 10 when auction starts
 	bidWinningProbability = 1;
@@ -1419,6 +1456,9 @@ function resetAuction() {
 		currentArtifactSprite = null;
 	}
 	artifactAnimationState = 'none';
+	
+	// Reset exit flag
+	isExitingAuction = false;
 }
 
 // Animation helper functions
