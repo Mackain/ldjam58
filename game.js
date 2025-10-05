@@ -80,6 +80,13 @@ let auctionBackground;
 let auctionAudience;
 let leadingBidText;
 
+// HUD elements
+let hudGoldText;
+let hudSocialStatusBar;
+let hudSocialStatusBackground;
+let hudSyphilisBar;
+let hudSyphilisBackground;
+
 // Sidescroller game variables
 let sidescrollerPlayer;
 let obstacles = [];
@@ -173,9 +180,16 @@ function update(time, delta) {
 	if (currentStage !== 'splash') {
 		socialStatus -= 0.01;
 		syphilis = syphilis < 1 ? 1 : syphilis + 0.005;
+		
+		// Update HUD with current values
+		updateHUD();
 	 }
 	//console.log("socialStatus: " + socialStatus);
 	console.log("syphilis: " + syphilis);
+	if (syphilis > 100) {
+		// Game over logic here
+		console.log("Game Over: Syphilis reached critical level!");
+	 }
 }
 
 function placeBid() {
@@ -615,6 +629,9 @@ function setupWorldMapUI() {
 	// Start continuous walking animation
 	greve.anims.play('walk', true);
 	
+	// Create HUD
+	createHUD();
+	
 	mimapElements = [greve, auctionZone, walletText];
 }
 
@@ -725,11 +742,111 @@ function setupBiddingUI() {
 		fill: '#ecf0f1',
 		fontFamily: 'Arial'
 	});
+	
+	// Create HUD
+	createHUD();
 }
 
 function clearUI() {
 	const scene = game.scene.scenes[0];
 	scene.children.removeAll();
+}
+
+// HUD functions
+function createHUD() {
+	const scene = game.scene.scenes[0];
+	
+	// Gold display
+	hudGoldText = scene.add.text(20, 20, `Gold: ${playerWallet}`, {
+		fontSize: '18px',
+		fill: '#FFD700',
+		fontFamily: 'Arial',
+		fontStyle: 'bold'
+	});
+	
+	// Social Status bar background
+	hudSocialStatusBackground = scene.add.rectangle(20, 50, 150, 20, 0x333333);
+	hudSocialStatusBackground.setOrigin(0, 0);
+	
+	// Social Status bar
+	hudSocialStatusBar = scene.add.rectangle(22, 52, 146, 16, 0x00ff00);
+	hudSocialStatusBar.setOrigin(0, 0);
+	
+	// Social Status label
+	scene.add.text(20, 75, 'Social Status', {
+		fontSize: '12px',
+		fill: '#ffffff',
+		fontFamily: 'Arial'
+	});
+	
+	// Syphilis bar background
+	hudSyphilisBackground = scene.add.rectangle(20, 95, 150, 20, 0x333333);
+	hudSyphilisBackground.setOrigin(0, 0);
+	
+	// Syphilis bar
+	hudSyphilisBar = scene.add.rectangle(22, 97, 1.46, 16, 0x00ff00);
+	hudSyphilisBar.setOrigin(0, 0);
+	
+	// Syphilis label
+	scene.add.text(20, 120, 'Syphilis', {
+		fontSize: '12px',
+		fill: '#ffffff',
+		fontFamily: 'Arial'
+	});
+	
+	// Initial update
+	updateHUD();
+}
+
+function updateHUD() {
+	if (!hudGoldText) return;
+	
+	// Update gold display
+	hudGoldText.setText(`Gold: ${playerWallet}`);
+	
+	// Update social status bar
+	const socialStatusPercent = Math.max(0, Math.min(100, socialStatus)) / 100;
+	const socialStatusWidth = socialStatusPercent * 146;
+	hudSocialStatusBar.width = socialStatusWidth;
+	
+	// Color social status bar: green when high, red when low
+	const socialStatusColor = socialStatusPercent > 0.5 ? 
+		Phaser.Display.Color.Interpolate.ColorWithColor(
+			{r: 255, g: 255, b: 0}, // yellow
+			{r: 0, g: 255, b: 0},   // green
+			10,
+			Math.floor((socialStatusPercent - 0.5) * 20)
+		) :
+		Phaser.Display.Color.Interpolate.ColorWithColor(
+			{r: 255, g: 0, b: 0},   // red
+			{r: 255, g: 255, b: 0}, // yellow
+			10,
+			Math.floor(socialStatusPercent * 20)
+		);
+	
+	hudSocialStatusBar.setFillStyle(Phaser.Display.Color.GetColor(socialStatusColor.r, socialStatusColor.g, socialStatusColor.b));
+	
+	// Update syphilis bar
+	const syphilisPercent = Math.max(0, Math.min(100, syphilis)) / 100;
+	const syphilisWidth = syphilisPercent * 146;
+	hudSyphilisBar.width = syphilisWidth;
+	
+	// Color syphilis bar: green when low, red when high (inverse of social status)
+	const syphilisColor = syphilisPercent > 0.5 ? 
+		Phaser.Display.Color.Interpolate.ColorWithColor(
+			{r: 255, g: 255, b: 0}, // yellow
+			{r: 255, g: 0, b: 0},   // red
+			10,
+			Math.floor((syphilisPercent - 0.5) * 20)
+		) :
+		Phaser.Display.Color.Interpolate.ColorWithColor(
+			{r: 0, g: 255, b: 0},   // green
+			{r: 255, g: 255, b: 0}, // yellow
+			10,
+			Math.floor((1 - syphilisPercent) * 20)
+		);
+	
+	hudSyphilisBar.setFillStyle(Phaser.Display.Color.GetColor(syphilisColor.r, syphilisColor.g, syphilisColor.b));
 }
 
 // Sidescroller functions
@@ -834,6 +951,9 @@ function setupSidescrollerUI() {
 		fill: '#000000',
 		fontFamily: 'Arial'
 	});
+	
+	// Create HUD
+	createHUD();
 }
 
 
@@ -885,6 +1005,9 @@ function setupGizaUI() {
 		fill: '#000000',
 		fontFamily: 'Arial'
 	});
+	
+	// Create HUD
+	createHUD();
 
 }
 
