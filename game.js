@@ -277,14 +277,6 @@ function biddingWon() {
 	socialStatus += 20;
 	playerWallet -= currentBid;
 	walletText.setText(`Wallet: ${playerWallet} Gold`);
-	
-	resetAuctionForNextRound();
-	// Artifact cycle will automatically start the next round
-}function biddingLost() {
-	console.log("Bidding lost!");
-	
-	resetAuctionForNextRound();
-	// Artifact cycle will automatically start the next round
 }
 
 function resetAuctionForNextRound() {
@@ -328,16 +320,15 @@ function startAuctionTimer() {
 			// Stop the timer first
 			auctionClubSound.play();
 			stopAuctionTimer();
-			
+
+			if (lastBidder === 'player') {
+				biddingWon();
+			}
 			// Show SOLD animation for 1 second, then determine winner
 			showSoldAnimation(() => {
 				// Fly out current artifact before determining winner
 				flyOutArtifact(() => {
-					if (lastBidder === 'player') {
-						biddingWon();
-					} else {
-						biddingLost();
-					}
+					resetAuctionForNextRound();
 				});
 			});
 		}
