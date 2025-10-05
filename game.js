@@ -100,6 +100,7 @@ let auctionClubSound;
 let flaxxxSound;
 let syphilisSound;
 let worldMapMusic;
+let sidescrollerMusic;
 
 // Sidescroller game variables
 let sidescrollerPlayer;
@@ -169,6 +170,7 @@ function preload() {
 	this.load.audio('Flaxxx', 'sounds/Flaxxx.mp3');
 	this.load.audio('syphilis', 'sounds/Syphilis.mp3');
 	this.load.audio('worldMapMusic', 'sounds/Among-the-Cheese-and-Wine-(overworld).mp3');
+	this.load.audio('sidescrollerMusic', 'sounds/Early-Retirement-Fund-Withdrawal-chasing-peasants).mp3');
 }
 
 function create() {
@@ -180,6 +182,7 @@ function create() {
 	syphilisSound = this.sound.add('syphilis', { volume: sfxVolume });
 	flaxxxSound = this.sound.add('Flaxxx', { volume: sfxVolume });
 	worldMapMusic = this.sound.add('worldMapMusic', { volume: musicVolume, loop: true });
+	sidescrollerMusic = this.sound.add('sidescrollerMusic', { volume: musicVolume, loop: true });
 	
 	// Initialize input handlers
 	setupInputHandlers(this);
@@ -908,6 +911,11 @@ function setupSidescrollerUI() {
 		worldMapMusic.stop();
 	}
 	
+	// Start sidescroller music
+	if (sidescrollerMusic && !sidescrollerMusic.isPlaying) {
+		sidescrollerMusic.play();
+	}
+	
 	clearUI();
 	const scene = game.scene.scenes[0];
 
@@ -1444,6 +1452,11 @@ function enterCurrentLocation() {
 
 
 function exitToWorldMap() {
+	// Stop sidescroller music
+	if (sidescrollerMusic && sidescrollerMusic.isPlaying) {
+		sidescrollerMusic.stop();
+	}
+	
 	isFirstRun = true;
 	isPesantInGame = false;
 	resetAuction();
