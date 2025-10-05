@@ -1004,8 +1004,19 @@ function enterCurrentLocation() {
 function exitToWorldMap() {
 	isFirstRun = true;
 	isPesantInGame = false;
-	stopAuctionTimer();
+	resetAuction();
 	setGameStage('worldMap');
+}
+
+function resetAuction() {
+	stopAuctionTimer();
+	currentBid = 10;
+	playerBid = 20; // Will be updated to currentBid + 10 when auction starts
+	bidWinningProbability = 1;
+	auctionTimer = 5;
+	auctionTimerText;
+	timerInterval;
+	lastBidder = null; // 'player' or 'bot'
 }
 
 // Animation helper functions
