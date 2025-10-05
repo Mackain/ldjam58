@@ -105,6 +105,7 @@ let gizaMusic;
 let auctionMusic;
 let mummyMunchSound;
 let camelCrushSound;
+let splashMusic;
 
 // Sidescroller game variables
 let sidescrollerPlayer;
@@ -179,6 +180,7 @@ function preload() {
 	this.load.audio('auctionMusic', 'sounds/La-Collection-de-Excellance-(auction-house).mp3');
 	this.load.audio('mummyMunchSound', 'sounds/Mummy-munch.mp3');
 	this.load.audio('camelCrushSound', 'sounds/Camel-crush.mp3');
+	this.load.audio('splashMusic', 'sounds/RuleBritannia.mp3');
 }
 
 function create() {
@@ -195,6 +197,7 @@ function create() {
 	auctionMusic = this.sound.add('auctionMusic', { volume: musicVolume, loop: true });
 	mummyMunchSound = this.sound.add('mummyMunchSound', { volume: sfxVolume * 1.2 });
 	camelCrushSound = this.sound.add('camelCrushSound', { volume: sfxVolume });
+	splashMusic = this.sound.add('splashMusic', { volume: musicVolume, loop: true });
 	
 	// Initialize input handlers
 	setupInputHandlers(this);
@@ -608,6 +611,11 @@ function setupSplashUI() {
 	// Clear existing elements
 	clearUI();
 	
+	// Start splash music
+	if (splashMusic && !splashMusic.isPlaying) {
+		splashMusic.play();
+	}
+	
 	const scene = game.scene.scenes[0];
 	
 	// Create splash animation if not already created
@@ -636,6 +644,11 @@ function setupSplashUI() {
 }
 
 function setupWorldMapUI() {
+	// Stop splash music
+	if (splashMusic && splashMusic.isPlaying) {
+		splashMusic.stop();
+	}
+	
 	// Clear existing elements
 	clearUI();
 	
