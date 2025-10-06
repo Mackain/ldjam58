@@ -822,13 +822,6 @@ function setupWorldMapUI() {
 		frameRate: 1
 	});
 	
-	// Instructions
-	scene.add.text(50, 50, 'Use arrow keys to navigate, Enter to interact', {
-		fontSize: '16px',
-		fill: '#ffffff',
-		fontFamily: 'Arial'
-	});
-	
 	// Location display
 	const location = mapLocations[currentLocationIndex];
 	
@@ -963,13 +956,6 @@ function setupBiddingUI() {
 		fill: '#ffffff',
 		fontFamily: 'Arial'
 	}).setOrigin(0.5);
-	
-	// Exit instruction
-	scene.add.text(50, 50, 'Press ESC to return to map', {
-		fontSize: '16px',
-		fill: '#ecf0f1',
-		fontFamily: 'Arial'
-	});
 	
 	// Create HUD
 	createHUD();
@@ -1186,20 +1172,6 @@ function setupSidescrollerUI() {
 		repeat: -1
 	});
 	
-	// Instructions
-	scene.add.text(50, 50, 'Press SPACE or UP to jump over obstacles', {
-		fontSize: '16px',
-		fill: '#000000',
-		fontFamily: 'Arial'
-	});
-	
-	// Exit instruction
-	scene.add.text(50, 80, 'Press ESC to return to map', {
-		fontSize: '16px',
-		fill: '#000000',
-		fontFamily: 'Arial'
-	});
-	
 	// Wallet display
 	walletText = scene.add.text(650, 30, `Wallet: ${playerWallet} Gold`, {
 		fontSize: '20px',
@@ -1275,13 +1247,6 @@ function setupGizaUI() {
 	// Create greveOmNom sprite at bottom of screen
 	greveOmNomSprite = scene.add.sprite(400, 550, 'greveNom');
 	greveOmNomSprite.anims.play('greveOmNom', true);
-
-	// Exit instruction
-	scene.add.text(50, 80, 'Press ESC to return to map', {
-		fontSize: '16px',
-		fill: '#000000',
-		fontFamily: 'Arial'
-	});
 	
 	// Create HUD
 	createHUD();
