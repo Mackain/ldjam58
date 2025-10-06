@@ -4,6 +4,10 @@ const config = {
 	width: 800,
 	height: 600,
 	backgroundColor: '#000000',
+	fps: {
+		target: 60,
+		forceSetTimeOut: true  // Forces consistent 60fps, fixes Chrome on Mac issues
+	},
 	scale: {
         mode: Phaser.Scale.FIT,          // scale proportionally to fit
         autoCenter: Phaser.Scale.CENTER_BOTH, // center horizontally & vertically
@@ -195,8 +199,6 @@ function preload() {
 	this.load.image('gameOver1', 'images/gameover1.png');
 	this.load.image('gameOver2', 'images/gameover2.png');
 
-	this.physics.world.setFPS(60)
-
 	
 	// Load audio files
 	this.load.audio('auctionClub', 'sounds/Auction-club.mp3');
@@ -241,24 +243,30 @@ function update(time, delta) {
 	if (gameOver) {
 		return;
 	}
+
+	console.log("Delta time: " + delta);
 	
 	// Update auction timer display
 	if (currentStage === 'bidding' && auctionTimerText) {
 		auctionTimerText.setText(`Time: ${auctionTimer}`);
 	}
 	
+	// Calculate delta multiplier for consistent timing (target 60fps)
+	const deltaMultiplier = delta / (1000 / 60);
+	
 	// Update sidescroller game
 	if (currentStage === 'sidescroller') {
-		updateSidescroller();
+		updateSidescroller(deltaMultiplier);
 	}
 
 	// Update giza game
 	if (currentStage === 'giza') {
-		updateGiza();
+		updateGiza(deltaMultiplier);
 	}
 	if (currentStage !== 'splash') {
-		socialStatus = socialStatus > 100 ? 100 : socialStatus - 0.01;
-		syphilis = syphilis < 1 ? 1 : syphilis + 0.005;
+		// Use delta multiplier for consistent time-based changes
+		socialStatus = socialStatus > 100 ? 100 : socialStatus - (0.01 * deltaMultiplier);
+		syphilis = syphilis < 1 ? 1 : syphilis + (0.005 * deltaMultiplier);
 		
 		// Update HUD with current values
 		updateHUD();
@@ -1328,7 +1336,7 @@ function jump() {
 
 let isFirstRun = true;
 
-function updateSidescroller() {
+function updateSidescroller(deltaMultiplier = 1) {
 	if (isFirstRun) {
 		isFirstRun = false;
 		jump();
@@ -1341,8 +1349,8 @@ function updateSidescroller() {
 	for (let i = fallingCoins.length - 1; i >= 0; i--) {
 		const coin = fallingCoins[i];
 		
-		// Simple constant falling motion
-		coin.y += 5; // Constant fall speed
+		// Time-based constant falling motion
+		coin.y += 5 * deltaMultiplier; // Scale with delta time
 		
 		// Remove coins that have fallen off screen
 		if (coin.y > 650) {
@@ -1353,16 +1361,17 @@ function updateSidescroller() {
 	
 	// Handle pause timer for pesantShake sequence
 	if (isGamePaused) {
-		pauseTimer--;
+		pauseTimer -= deltaMultiplier;
 		if (!flaxxxSound.isPlaying) {
 			flaxxxSound.play();
 		}
 		
 		// Continue spawning coins during shake sequence
-		coinSpawnTimer++;
+		coinSpawnTimer += deltaMultiplier;
 		// Spawn a coin every 40 frames (1.5 coins per second at 60fps)
-		if (coinSpawnTimer % 40 === 0) {
+		if (coinSpawnTimer >= 40) {
 			spawnFallingCoin(scene);
+			coinSpawnTimer = 0;
 		}
 		
 		if (pauseTimer <= 0) {
@@ -1375,7 +1384,7 @@ function updateSidescroller() {
 	
 	// Handle collision immunity timer
 	if (isCollisionImmune) {
-		immunityTimer--;
+		immunityTimer -= deltaMultiplier;
 		if (immunityTimer <= 0) {
 			isCollisionImmune = false;
 		}
@@ -1383,8 +1392,8 @@ function updateSidescroller() {
 	
 	// Handle jumping physics
 	if (isJumping) {
-		sidescrollerPlayer.y += jumpVelocity;
-		jumpVelocity += gravity;
+		sidescrollerPlayer.y += jumpVelocity * deltaMultiplier;
+		jumpVelocity += gravity * deltaMultiplier;
 		
 		// Check if landed
 		if (sidescrollerPlayer.y >= groundY - 45) {
@@ -1395,18 +1404,17 @@ function updateSidescroller() {
 	}
 	
 	// Spawn obstacles
-	obstacleSpawnTimer++;
+	obstacleSpawnTimer += deltaMultiplier;
 	if (obstacleSpawnTimer > 120) { // Every 2 seconds at 60fps
 		spawnObstacle(scene);
 		obstacleSpawnTimer = 0;
 	}
 
-	if (Math.ceil(Math.random() * 100) == 8) { // completely random
+	if (Math.random() < (8/100) * deltaMultiplier) { // Random chance scaled with delta
 		spawnTree(scene);
-		//obstacleSpawnTimer = 0;
 	}
 
-	if (obstacleSpawnTimer === 80 && !isPesantInGame) { // Every 2 seconds at 60fps
+	if (obstacleSpawnTimer >= 80 && !isPesantInGame) { // After ~1.33 seconds at 60fps
 		spawnPesant(scene);
 		isPesantInGame = true;
 	}
@@ -1417,9 +1425,9 @@ function updateSidescroller() {
 		
 		// Handle peasant behavior
 		if (obstacle.obstacleType === 'pesant') {
-			obstacle.spawnTime++;
+			obstacle.spawnTime += deltaMultiplier;
 			
-			// Start running after 2 seconds (120 frames at 60fps)
+			// Start running after ~0.66 seconds (40 frames at 60fps)
 			if (obstacle.spawnTime > 40 && !obstacle.isRunning) {
 				obstacle.isRunning = true;
 				obstacle.anims.play('bonde_run', true);
@@ -1443,8 +1451,8 @@ function updateSidescroller() {
 			
 			// Handle peasant jumping physics
 			if (obstacle.isJumping) {
-				obstacle.y += obstacle.jumpVelocity;
-				obstacle.jumpVelocity += gravity;
+				obstacle.y += obstacle.jumpVelocity * deltaMultiplier;
+				obstacle.jumpVelocity += gravity * deltaMultiplier;
 				
 				// Check if landed
 				if (obstacle.y >= groundY - 15) {
@@ -1456,13 +1464,13 @@ function updateSidescroller() {
 			
 			// Move peasant (slower when running)
 			if (obstacle.isRunning) {
-				obstacle.x -= obstacle.runSpeed;
+				obstacle.x -= obstacle.runSpeed * deltaMultiplier;
 			} else {
-				obstacle.x -= gameSpeed;
+				obstacle.x -= gameSpeed * deltaMultiplier;
 			}
 		} else {
 			// Regular obstacle movement
-			obstacle.x -= gameSpeed;
+			obstacle.x -= gameSpeed * deltaMultiplier;
 		}
 		
 		// Remove obstacles that are off screen
@@ -1497,7 +1505,7 @@ function updateSidescroller() {
 	}
 }
 
-function updateGiza() {
+function updateGiza(deltaMultiplier = 1) {
 	if (currentStage !== 'giza' || !greveOmNomSprite) return;
 	
 	// Handle smooth movement based on key states
@@ -1508,7 +1516,7 @@ function updateGiza() {
 		
 		// Check for left movement (A key or Left arrow)
 		if (cursors.left.isDown || wasd.A.isDown) {
-			greveOmNomSprite.x -= gizaMoveSpeed;
+			greveOmNomSprite.x -= gizaMoveSpeed * deltaMultiplier;
 			// Keep player within screen bounds
 			if (greveOmNomSprite.x < 40) {
 				greveOmNomSprite.x = 40;
@@ -1517,7 +1525,7 @@ function updateGiza() {
 		
 		// Check for right movement (D key or Right arrow)
 		if (cursors.right.isDown || wasd.D.isDown) {
-			greveOmNomSprite.x += gizaMoveSpeed;
+			greveOmNomSprite.x += gizaMoveSpeed * deltaMultiplier;
 			// Keep player within screen bounds
 			if (greveOmNomSprite.x > 760) {
 				greveOmNomSprite.x = 760;
@@ -1526,8 +1534,9 @@ function updateGiza() {
 	}
 	
 	// Spawn objects at random intervals
-	gizaSpawnTimer++;
-	if (gizaSpawnTimer > 90 + Math.random() * 120) { // Random spawn between 1.5-3.5 seconds at 60fps
+	gizaSpawnTimer += deltaMultiplier;
+	const spawnThreshold = 90 + Math.random() * 120; // Random spawn between 1.5-3.5 seconds at 60fps
+	if (gizaSpawnTimer > spawnThreshold) {
 		// Randomly spawn either camel or mummy
 		if (Math.random() < 0.6) { // 60% chance for camel (obstacle)
 			spawnCamel();
@@ -1547,8 +1556,8 @@ function updateGiza() {
 			continue;
 		}
 		
-		// Move object down
-		object.y += object.fallSpeed;
+		// Move object down with time-based speed
+		object.y += object.fallSpeed * deltaMultiplier;
 		
 		// Check collision with player
 		if (checkGizaCollision(greveOmNomSprite, object)) {
