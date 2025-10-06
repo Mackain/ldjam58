@@ -1525,6 +1525,10 @@ function exitToWorldMap() {
 	if (auctionMusic && auctionMusic.isPlaying) {
 		auctionMusic.stop();
 	}
+
+	if (flaxxxSound && flaxxxSound.isPlaying) {
+		flaxxxSound.stop();
+	}
 	
 	isFirstRun = true;
 	isPesantInGame = false;
