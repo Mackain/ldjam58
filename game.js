@@ -1179,7 +1179,25 @@ function checkGizaCollision(player, object) {
 	const playerBounds = player.getBounds();
 	const objectBounds = object.getBounds();
 	
-	return Phaser.Geom.Rectangle.Overlaps(playerBounds, objectBounds);
+	// Shrink hitboxes to make collision detection more forgiving
+	// Reduce each bound by 30% (15% on each side)
+	const shrinkAmount = 0.15;
+	
+	const playerShrunkBounds = new Phaser.Geom.Rectangle(
+		playerBounds.x + playerBounds.width * shrinkAmount,
+		playerBounds.y + playerBounds.height * shrinkAmount,
+		playerBounds.width * (1 - 2 * shrinkAmount),
+		playerBounds.height * (1 - 2 * shrinkAmount)
+	);
+	
+	const objectShrunkBounds = new Phaser.Geom.Rectangle(
+		objectBounds.x + objectBounds.width * shrinkAmount,
+		objectBounds.y + objectBounds.height * shrinkAmount,
+		objectBounds.width * (1 - 2 * shrinkAmount),
+		objectBounds.height * (1 - 2 * shrinkAmount)
+	);
+	
+	return Phaser.Geom.Rectangle.Overlaps(playerShrunkBounds, objectShrunkBounds);
 }
 
 let isPesantInGame = false;
