@@ -31,6 +31,7 @@ let playerWallet = 500;
 let fancyStuffs = 0;
 let socialStatus = 100;
 let syphilis = 1;
+let gameOver = false;
 
 // Auction
 let currentBid = 10;
@@ -106,6 +107,7 @@ let auctionMusic;
 let mummyMunchSound;
 let camelCrushSound;
 let splashMusic;
+let gameOverMusic;
 
 // Sidescroller game variables
 let sidescrollerPlayer;
@@ -182,6 +184,7 @@ function preload() {
 	this.load.image('coin2', 'images/coin2.png');
 	this.load.image('coin3', 'images/coin3.png');
 	this.load.image('coin4', 'images/coin4.png');
+	this.load.image('gameOver1', 'images/gameover1.png');
 
 	
 	// Load audio files
@@ -195,6 +198,7 @@ function preload() {
 	this.load.audio('mummyMunchSound', 'sounds/Mummy-munch.mp3');
 	this.load.audio('camelCrushSound', 'sounds/Camel-crush.mp3');
 	this.load.audio('splashMusic', 'sounds/RuleBritannia.mp3');
+	this.load.audio('gameOverMusic', 'sounds/Revolution-or-Laughing-stock-(game-over).mp3');
 }
 
 function create() {
@@ -212,6 +216,7 @@ function create() {
 	mummyMunchSound = this.sound.add('mummyMunchSound', { volume: sfxVolume * 1.2 });
 	camelCrushSound = this.sound.add('camelCrushSound', { volume: sfxVolume });
 	splashMusic = this.sound.add('splashMusic', { volume: musicVolume, loop: true });
+	gameOverMusic = this.sound.add('gameOverMusic', { volume: musicVolume, loop: true });
 	
 	// Initialize input handlers
 	setupInputHandlers(this);
@@ -221,6 +226,11 @@ function create() {
 }
 
 function update(time, delta) {
+	// Prevent all game updates if game is over
+	if (gameOver) {
+		return;
+	}
+	
 	// Update auction timer display
 	if (currentStage === 'bidding' && auctionTimerText) {
 		auctionTimerText.setText(`Time: ${auctionTimer}`);
@@ -244,10 +254,30 @@ function update(time, delta) {
 	 }
 	//console.log("socialStatus: " + socialStatus);
 	//console.log("syphilis: " + syphilis);
-	if (syphilis > 100) {
-		// Game over logic here
+	if (syphilis > 100 && !gameOver) {
+		// Stop all background activities and sounds
+		stopAllSounds();
+		
+		// Set game over state
+		gameOver = true;
+		
+		// Set input handler to game over mode
+		activeInputHandler = inputHandlers.gameOver;
+		
+		// Get the scene reference
+		const scene = game.scene.scenes[0];
+		
+		// Display game over screen as a full-screen overlay
+		const gameOverScreen = scene.add.image(400, 300, 'gameOver1');
+		gameOverScreen.setDepth(1000); // Make sure it appears on top of everything
+		
+		// Play game over music
+		if (gameOverMusic) {
+			gameOverMusic.play();
+		}
+		
 		console.log("Game Over: Syphilis reached critical level!");
-	 }
+	}
 }
 
 function placeBid() {
@@ -390,6 +420,93 @@ function stopAuctionTimer() {
 		clearInterval(timerInterval);
 		timerInterval = null;
 	}
+}
+
+function stopAllSounds() {
+	// Stop all music and sound effects
+	if (worldMapMusic && worldMapMusic.isPlaying) worldMapMusic.stop();
+	if (sidescrollerMusic && sidescrollerMusic.isPlaying) sidescrollerMusic.stop();
+	if (gizaMusic && gizaMusic.isPlaying) gizaMusic.stop();
+	if (auctionMusic && auctionMusic.isPlaying) auctionMusic.stop();
+	if (splashMusic && splashMusic.isPlaying) splashMusic.stop();
+	if (gameOverMusic && gameOverMusic.isPlaying) gameOverMusic.stop();
+	if (auctionClubSound && auctionClubSound.isPlaying) auctionClubSound.stop();
+	if (syphilisSound && syphilisSound.isPlaying) syphilisSound.stop();
+	if (flaxxxSound && flaxxxSound.isPlaying) flaxxxSound.stop();
+	if (mummyMunchSound && mummyMunchSound.isPlaying) mummyMunchSound.stop();
+	if (camelCrushSound && camelCrushSound.isPlaying) camelCrushSound.stop();
+}
+
+function resetGame() {
+	// Stop all sounds first
+	stopAllSounds();
+	
+	// Reset core game variables to initial state
+	playerWallet = 500;
+	fancyStuffs = 0;
+	socialStatus = 100;
+	syphilis = 1;
+	gameOver = false;
+	
+	// Reset auction variables
+	currentBid = 10;
+	playerBid = 20;
+	bidWinningProbability = 1;
+	auctionTimer = 5;
+	lastBidder = null;
+	isExitingAuction = false;
+	
+	// Reset artifact system
+	currentArtifactSprite = null;
+	artifactAnimationState = 'none';
+	availableArtifacts = ['artifact1', 'artifact2', 'artifact3', 'artifact4', 'artifact5', 'artifact6', 'artifact7', 'artifact8', 'artifact9', 'artifact10'];
+	
+	// Reset game stage and location
+	currentStage = 'splash';
+	currentLocationIndex = 0;
+	
+	// Reset sidescroller variables
+	obstacles = [];
+	isJumping = false;
+	jumpVelocity = 0;
+	obstacleSpawnTimer = 0;
+	isGamePaused = false;
+	pauseTimer = 0;
+	pesantShakeAnimationCreated = false;
+	sidescrollerAnimationsCreated = false;
+	isCollisionImmune = false;
+	immunityTimer = 0;
+	fallingCoins = [];
+	coinSpawnTimer = 0;
+	
+	// Reset giza variables
+	gizaFallingObjects = [];
+	gizaSpawnTimer = 0;
+	gizaAnimationsCreated = false;
+	gizaLeftPressed = false;
+	gizaRightPressed = false;
+	
+	// Reset splash screen variables
+	splashAnimationsCreated = false;
+	
+	// Clear timers
+	if (timerInterval) {
+		clearInterval(timerInterval);
+		timerInterval = null;
+	}
+	if (soldAnimationTimeout) {
+		clearTimeout(soldAnimationTimeout);
+		soldAnimationTimeout = null;
+	}
+	
+	// Get scene reference and clear all game objects
+	const scene = game.scene.scenes[0];
+	
+	// Clear all existing sprites and UI elements
+	scene.children.removeAll();
+	
+	// Reset to splash screen
+	setGameStage('splash');
 }
 
 function showBotBidHand() {
@@ -570,6 +687,10 @@ function setupInputHandlers(scene) {
 		'ESC': () => exitToWorldMap()
 	};
 
+	// Game Over stage input handler
+	inputHandlers.gameOver = {
+		'SPACE': () => resetGame()
+	};
 
 	
 	// Example: Menu stage input handler (for future use)
@@ -1439,6 +1560,12 @@ function updateGiza() {
 	// Update falling objects
 	for (let i = gizaFallingObjects.length - 1; i >= 0; i--) {
 		const object = gizaFallingObjects[i];
+		
+		// Check if object still exists (could be destroyed by exitToWorldMap)
+		if (!object || !object.scene || object.y === undefined) {
+			gizaFallingObjects.splice(i, 1);
+			continue;
+		}
 		
 		// Move object down
 		object.y += object.fallSpeed;
