@@ -246,7 +246,7 @@ function update(time, delta) {
 		updateGiza();
 	}
 	if (currentStage !== 'splash') {
-		socialStatus -= 0.01;
+		socialStatus = socialStatus > 100 ? 100 : socialStatus - 0.01;
 		syphilis = syphilis < 1 ? 1 : syphilis + 0.005;
 		
 		// Update HUD with current values
