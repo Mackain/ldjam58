@@ -185,6 +185,7 @@ function preload() {
 	this.load.image('coin3', 'images/coin3.png');
 	this.load.image('coin4', 'images/coin4.png');
 	this.load.image('gameOver1', 'images/gameover1.png');
+	this.load.image('gameOver2', 'images/gameover2.png');
 
 	
 	// Load audio files
@@ -277,6 +278,31 @@ function update(time, delta) {
 		}
 		
 		console.log("Game Over: Syphilis reached critical level!");
+	}
+	
+	if (socialStatus <= 0 && !gameOver) {
+		// Stop all background activities and sounds
+		stopAllSounds();
+		
+		// Set game over state
+		gameOver = true;
+		
+		// Set input handler to game over mode
+		activeInputHandler = inputHandlers.gameOver;
+		
+		// Get the scene reference
+		const scene = game.scene.scenes[0];
+		
+		// Display game over screen as a full-screen overlay
+		const gameOverScreen = scene.add.image(400, 300, 'gameOver2');
+		gameOverScreen.setDepth(1000); // Make sure it appears on top of everything
+		
+		// Play game over music
+		if (gameOverMusic) {
+			gameOverMusic.play();
+		}
+		
+		console.log("Game Over: Social status reached zero!");
 	}
 }
 
