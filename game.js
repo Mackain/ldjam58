@@ -445,12 +445,21 @@ function updateLeadingBidText() {
 	if (lastBidder === 'player') {
 		leadingBidText.setText('You have the leading bid');
 		leadingBidText.setFill('#00ff00');
+		if (bidButtonText) {
+			bidButtonText.setVisible(false);
+		}
 	} else if (lastBidder === 'bot') {
 		leadingBidText.setText('Another count has the leading bid');
 		leadingBidText.setFill('#ff0000');
+		if (bidButtonText) {
+			bidButtonText.setVisible(true);
+		}
 	} else {
 		leadingBidText.setText('No bids yet');
 		leadingBidText.setFill('#ffffff');
+		if (bidButtonText) {
+			bidButtonText.setVisible(true);
+		}
 	}
 }
 
