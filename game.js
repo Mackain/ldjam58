@@ -243,8 +243,6 @@ function update(time, delta) {
 	if (gameOver) {
 		return;
 	}
-
-	console.log("Delta time: " + delta);
 	
 	// Update auction timer display
 	if (currentStage === 'bidding' && auctionTimerText) {
@@ -271,8 +269,7 @@ function update(time, delta) {
 		// Update HUD with current values
 		updateHUD();
 	 }
-	//console.log("socialStatus: " + socialStatus);
-	//console.log("syphilis: " + syphilis);
+	 
 	if (syphilis > 100 && !gameOver) {
 		// Stop all background activities and sounds
 		stopAllSounds();
@@ -294,8 +291,6 @@ function update(time, delta) {
 		if (gameOverMusic) {
 			gameOverMusic.play();
 		}
-		
-		console.log("Game Over: Syphilis reached critical level!");
 	}
 	
 	if (socialStatus <= 0 && !gameOver) {
@@ -319,8 +314,6 @@ function update(time, delta) {
 		if (gameOverMusic) {
 			gameOverMusic.play();
 		}
-		
-		console.log("Game Over: Social status reached zero!");
 	}
 }
 
@@ -361,8 +354,6 @@ function botPlaceBid() {
 			currentBid += 10;
 			currentBidText.setText(`${currentBid} Gold`);
 			bidWinningProbability++;
-			console.log("botBidChance: " + botBidChance);
-			console.log("Bot places a bid. Current bid is now " + currentBid + " Gold");
 
 			// Show bot bid hand in audience
 			showBotBidHand();
@@ -377,10 +368,6 @@ function botPlaceBid() {
 			if (bidButtonText) {
 				bidButtonText.setText(`Press space to place bid ${playerBid} Gold`);
 			}
-		} else {
-			console.log("botBidChance: " + botBidChance);
-			console.log('Bot decides not to bid this round.');
-			// Don't automatically win - let timer decide
 		}
 	}, Math.floor(Math.random() * 2000) + 500); // 0.5-2.5 second delay
 }
@@ -389,7 +376,6 @@ function biddingWon() {
 	// Don't execute if we're exiting
 	if (isExitingAuction) return;
 	
-	console.log("Bidding won!");	
 	fancyStuffs++;
 	socialStatus += 40;
 	playerWallet -= currentBid;
@@ -776,7 +762,6 @@ function setupInputHandlers(scene) {
 function setGameStage(stageName) {
 	currentStage = stageName;
 	activeInputHandler = inputHandlers[stageName];
-	console.log(`Game stage changed to: ${stageName}`);
 	
 	// Clear existing UI and set up new stage
 	if (stageName === 'splash') {
@@ -1563,12 +1548,10 @@ function updateGiza(deltaMultiplier = 1) {
 		if (checkGizaCollision(greveOmNomSprite, object)) {
 			if (object.objectType === 'camel') {
 				camelCrushSound.play(); // Play camel crush sound
-				exitToWorldMap(); 
-				console.log('-1'); // Collision with camel (bad)
+				exitToWorldMap();
 			} else if (object.objectType === 'mummy') {
 				mummyMunchSound.play(); // Play mummy munch sound
 				syphilis -= 20;
-				console.log('+1'); // Collision with mummy (good)
 			}
 			
 			// Remove the object after collision
@@ -1598,7 +1581,6 @@ function spawnTree(scene) {
 	obstacle.obstacleType = 'tree'; // Mark as haystack obstacle
 	obstacle.setDepth(1);
 	obstacles.push(obstacle);
-	console.log("tree ")
 }
 
 
@@ -1756,12 +1738,10 @@ function navigateToLocation(direction) {
 function updateLocationDisplay() {
 	// This will show which location the player is currently at
 	const location = mapLocations[currentLocationIndex];
-	console.log(`Current location: ${location.name}`);
 }
 
 function enterCurrentLocation() {
 	const location = mapLocations[currentLocationIndex];
-	console.log(`Entering ${location.name}`);
 	
 	// Enter the minigame for this location
 	if (location.minigame === 'bidding') {
