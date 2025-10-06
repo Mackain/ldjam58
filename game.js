@@ -37,7 +37,7 @@ let gameOver = false;
 let currentBid = 0;
 let playerBid = 20; // Will be updated to currentBid + 10 when auction starts
 let bidWinningProbability = 1;
-let auctionTimer = 5;
+let auctionTimer = 3;
 let auctionTimerText;
 let timerInterval;
 let lastBidder = null; // 'player' or 'bot'
@@ -311,7 +311,7 @@ function placeBid() {
 }
 
 function botPlaceBid() {
-	// Add delay before bot makes decision (1-3 seconds)
+	// Add delay before bot makes decision (up to 2 seconds)
 	setTimeout(() => {
 		let botBidChance = Math.floor(Math.random() * 10) + 1;
 		if (botBidChance > bidWinningProbability) {
@@ -324,8 +324,9 @@ function botPlaceBid() {
 			// Show bot bid hand in audience
 			showBotBidHand();
 			
-			// Bot placed a bid - reset timer
+			// Bot placed a bid - reset timer to 3 seconds
 			lastBidder = 'bot';
+			resetAuctionTimer();
 			updateLeadingBidText();
 			
 			// Update player bid and button text
@@ -338,7 +339,7 @@ function botPlaceBid() {
 			console.log('Bot decides not to bid this round.');
 			// Don't automatically win - let timer decide
 		}
-	}, Math.floor(Math.random() * 2000) + 1000); // 1-3 second delay
+	}, Math.floor(Math.random() * 2000) + 500); // 0.5-2.5 second delay
 }
 
 function biddingWon() {
@@ -378,7 +379,7 @@ function startAuctionTimer() {
 	// Don't start timer if we're exiting
 	if (isExitingAuction) return;
 	
-	auctionTimer = 5;
+	auctionTimer = 3;
 	lastBidder = null;
 	if (timerInterval) {
 		clearInterval(timerInterval);
@@ -409,7 +410,7 @@ function startAuctionTimer() {
 }
 
 function resetAuctionTimer() {
-	auctionTimer = 5;
+	auctionTimer = 3;
 	if (auctionTimerText) {
 		auctionTimerText.setText(`Time: ${auctionTimer}`);
 	}
