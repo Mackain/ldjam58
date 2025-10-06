@@ -1187,7 +1187,7 @@ let isPesantInGame = false;
 function jump() {
 	if (!isJumping && sidescrollerPlayer) {
 		isJumping = true;
-		jumpVelocity = -20; // Negative for upward movement
+		jumpVelocity = -16; // Negative for upward movement
 	}
 }
 
@@ -1483,7 +1483,25 @@ function checkCollision(player, obstacle) {
 	const playerBounds = player.getBounds();
 	const obstacleBounds = obstacle.getBounds();
 	
-	return Phaser.Geom.Rectangle.Overlaps(playerBounds, obstacleBounds);
+	// Shrink hitboxes to make collision detection more forgiving
+	// Reduce each bound by 30% (15% on each side)
+	const shrinkAmount = 0.15;
+	
+	const playerShrunkBounds = new Phaser.Geom.Rectangle(
+		playerBounds.x + playerBounds.width * shrinkAmount,
+		playerBounds.y + playerBounds.height * shrinkAmount,
+		playerBounds.width * (1 - 2 * shrinkAmount),
+		playerBounds.height * (1 - 2 * shrinkAmount)
+	);
+	
+	const obstacleShrunkBounds = new Phaser.Geom.Rectangle(
+		obstacleBounds.x + obstacleBounds.width * shrinkAmount,
+		obstacleBounds.y + obstacleBounds.height * shrinkAmount,
+		obstacleBounds.width * (1 - 2 * shrinkAmount),
+		obstacleBounds.height * (1 - 2 * shrinkAmount)
+	);
+	
+	return Phaser.Geom.Rectangle.Overlaps(playerShrunkBounds, obstacleShrunkBounds);
 }
 
 function startPesantShakeSequence() {
