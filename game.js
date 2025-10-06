@@ -314,7 +314,7 @@ function biddingWon() {
 	
 	console.log("Bidding won!");	
 	fancyStuffs++;
-	socialStatus += 20;
+	socialStatus += 40;
 	playerWallet -= currentBid;
 	walletText.setText(`Wallet: ${playerWallet} Gold`);
 }
