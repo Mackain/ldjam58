@@ -130,6 +130,9 @@ let coinSpawnTimer = 0;
 let gizaFallingObjects = [];
 let gizaSpawnTimer = 0;
 let gizaAnimationsCreated = false;
+let gizaLeftPressed = false;
+let gizaRightPressed = false;
+let gizaMoveSpeed = 6;
 
 function preload() {
 	// Load assets here
@@ -564,9 +567,7 @@ function setupInputHandlers(scene) {
 
 	// Giza stage input handler
 	inputHandlers.giza = {
-		'ESC': () => exitToWorldMap(),
-		'LEFT': () => slideLeft(),
-		'RIGHT': () => slideRight()
+		'ESC': () => exitToWorldMap()
 	};
 
 
@@ -1115,6 +1116,8 @@ function setupGizaUI() {
 	}
 	gizaFallingObjects = [];
 	gizaSpawnTimer = 0;
+	gizaLeftPressed = false;
+	gizaRightPressed = false;
 	// no clue what this does but it happens everywhere so i guess it is needed here...
 	const scene = game.scene.scenes[0];
 
@@ -1220,17 +1223,7 @@ function jump() {
 	}
 }
 
-function slideLeft() {
-	// Should move greveOnNom to the left
-	greveOmNomSprite.x -= greveOmNomSprite.x < 0 ? 0 : 10;
-	console.log('left');
-}
-
-function slideRight() {
-	// Should move greveOnNom to the right
-	greveOmNomSprite.x += greveOmNomSprite.x > 800 ? 0 : 10;
-	console.log('right');
-}
+// Smooth movement is now handled in updateGiza() function
 
 let isFirstRun = true;
 
@@ -1405,6 +1398,31 @@ function updateSidescroller() {
 
 function updateGiza() {
 	if (currentStage !== 'giza' || !greveOmNomSprite) return;
+	
+	// Handle smooth movement based on key states
+	const scene = game.scene.scenes[0];
+	if (scene && scene.input && scene.input.keyboard) {
+		const cursors = scene.input.keyboard.createCursorKeys();
+		const wasd = scene.input.keyboard.addKeys('W,S,A,D');
+		
+		// Check for left movement (A key or Left arrow)
+		if (cursors.left.isDown || wasd.A.isDown) {
+			greveOmNomSprite.x -= gizaMoveSpeed;
+			// Keep player within screen bounds
+			if (greveOmNomSprite.x < 40) {
+				greveOmNomSprite.x = 40;
+			}
+		}
+		
+		// Check for right movement (D key or Right arrow)
+		if (cursors.right.isDown || wasd.D.isDown) {
+			greveOmNomSprite.x += gizaMoveSpeed;
+			// Keep player within screen bounds
+			if (greveOmNomSprite.x > 760) {
+				greveOmNomSprite.x = 760;
+			}
+		}
+	}
 	
 	// Spawn objects at random intervals
 	gizaSpawnTimer++;
