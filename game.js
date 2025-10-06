@@ -1104,6 +1104,17 @@ function setupGizaUI() {
 	}
 
 	clearUI();
+	
+	// Reset Giza game state to prevent phantom collisions
+	// Clear any leftover falling objects from previous sessions
+	for (let i = gizaFallingObjects.length - 1; i >= 0; i--) {
+		const object = gizaFallingObjects[i];
+		if (object && object.destroy) {
+			object.destroy();
+		}
+	}
+	gizaFallingObjects = [];
+	gizaSpawnTimer = 0;
 	// no clue what this does but it happens everywhere so i guess it is needed here...
 	const scene = game.scene.scenes[0];
 
@@ -1654,6 +1665,17 @@ function exitToWorldMap() {
 	
 	isFirstRun = true;
 	isPesantInGame = false;
+	
+	// Clean up Giza game state
+	for (let i = gizaFallingObjects.length - 1; i >= 0; i--) {
+		const object = gizaFallingObjects[i];
+		if (object && object.destroy) {
+			object.destroy();
+		}
+	}
+	gizaFallingObjects = [];
+	gizaSpawnTimer = 0;
+	
 	resetAuction();
 	setGameStage('worldMap');
 }
