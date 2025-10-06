@@ -78,7 +78,6 @@ let mapLocations = [
 let currentLocationIndex = 0;
 
 // UI elements
-let walletText;
 let currentBidText;
 let playerBidText;
 let increaseButton;
@@ -315,7 +314,6 @@ function placeBid() {
 		// Increase current bid by 10 gold
 		currentBid += 10;
 		currentBidText.setText(`${currentBid} Gold`);
-		walletText.setText(`Wallet: ${playerWallet} Gold`);
 		
 		// Player placed a bid - reset timer
 		lastBidder = 'player';
@@ -376,7 +374,6 @@ function biddingWon() {
 	fancyStuffs++;
 	socialStatus += 40;
 	playerWallet -= currentBid;
-	walletText.setText(`Wallet: ${playerWallet} Gold`);
 }
 
 function resetAuctionForNextRound() {
@@ -851,12 +848,6 @@ function setupWorldMapUI() {
 	// Location display
 	const location = mapLocations[currentLocationIndex];
 	
-	// Wallet display (always visible)
-	walletText = scene.add.text(650, 30, `Wallet: ${playerWallet} Gold`, {
-		fontSize: '20px',
-		fill: '#ffffff',
-		fontFamily: 'Arial'
-	});
 	
 	// Start continuous walking animation
 	greve.anims.play('walk', true);
@@ -869,7 +860,7 @@ function setupWorldMapUI() {
 		worldMapMusic.play();
 	}
 	
-	mimapElements = [greve, auctionZone, walletText];
+	mimapElements = [greve, auctionZone];
 }
 
 let handSprite;
@@ -935,13 +926,6 @@ function setupBiddingUI() {
 		fontStyle: 'bold'
 	}).setOrigin(0.5);
 
-	// Wallet display (top right)
-	walletText = scene.add.text(600, 30, `Wallet: ${playerWallet} Gold`, {
-		fontSize: '24px',
-		fill: '#ecf0f1',
-		fontFamily: 'Arial'
-	});
-	
 	// Initialize playerBid to be current bid + 10
 	playerBid = currentBid + 10;
 	
@@ -1197,14 +1181,7 @@ function setupSidescrollerUI() {
 		frameRate: 10,
 		repeat: -1
 	});
-	
-	// Wallet display
-	walletText = scene.add.text(650, 30, `Wallet: ${playerWallet} Gold`, {
-		fontSize: '20px',
-		fill: '#000000',
-		fontFamily: 'Arial'
-	});
-	
+
 	// Create HUD
 	createHUD();
 }
@@ -1697,7 +1674,6 @@ function endPesantShakeSequence() {
 	if (!sidescrollerPlayer) return;
 
 	playerWallet += Math.floor(Math.random() * 15 + 5); // Random between 5 Gold and 20 Gold
-	walletText.setText(`Wallet: ${playerWallet} Gold`);
 
 	// Resume the game
 	isGamePaused = false;
