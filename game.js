@@ -195,6 +195,8 @@ function preload() {
 	this.load.image('gameOver1', 'images/gameover1.png');
 	this.load.image('gameOver2', 'images/gameover2.png');
 
+	this.physics.world.setFPS(60)
+
 	
 	// Load audio files
 	this.load.audio('auctionClub', 'sounds/Auction-club.mp3');
