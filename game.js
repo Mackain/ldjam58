@@ -34,7 +34,7 @@ let syphilis = 1;
 let gameOver = false;
 
 // Auction
-let currentBid = 10;
+let currentBid = 0;
 let playerBid = 20; // Will be updated to currentBid + 10 when auction starts
 let bidWinningProbability = 1;
 let auctionTimer = 5;
@@ -353,7 +353,7 @@ function biddingWon() {
 }
 
 function resetAuctionForNextRound() {
-	currentBid = 10;
+	currentBid = 0;
 	bidWinningProbability = 1;
 	playerBid = currentBid + 10; // Always 10 more than current bid
 	lastBidder = null;
@@ -394,7 +394,7 @@ function startAuctionTimer() {
 			auctionClubSound.play();
 			stopAuctionTimer();
 
-			if (lastBidder === 'player') {
+			if (lastBidder === 'player' || currentBid === 10) {
 				biddingWon();
 			}
 			// Show SOLD animation for 1 second, then determine winner
@@ -449,7 +449,7 @@ function resetGame() {
 	gameOver = false;
 	
 	// Reset auction variables
-	currentBid = 10;
+	currentBid = 0;
 	playerBid = 20;
 	bidWinningProbability = 1;
 	auctionTimer = 5;
@@ -1843,7 +1843,7 @@ function resetAuction() {
 		scene.tweens.killAll();
 	}
 	
-	currentBid = 10;
+	currentBid = 0;
 	playerBid = 20; // Will be updated to currentBid + 10 when auction starts
 	bidWinningProbability = 1;
 	auctionTimer = 5;
