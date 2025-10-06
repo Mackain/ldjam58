@@ -123,6 +123,8 @@ let pesantShakeAnimationCreated = false;
 let sidescrollerAnimationsCreated = false;
 let isCollisionImmune = false;
 let immunityTimer = 0;
+let fallingCoins = [];
+let coinSpawnTimer = 0;
 
 // Giza game variables
 let gizaFallingObjects = [];
@@ -173,6 +175,10 @@ function preload() {
 	this.load.image('englandCloud1', 'images/englandCloud.png');
 	this.load.image('englandCloud2', 'images/englandCloud2.png');
 	this.load.image('englandTree', 'images/englandTree.png');
+	this.load.image('coin1', 'images/coin1.png');
+	this.load.image('coin2', 'images/coin2.png');
+	this.load.image('coin3', 'images/coin3.png');
+	this.load.image('coin4', 'images/coin4.png');
 
 	
 	// Load audio files
@@ -956,9 +962,11 @@ function setupSidescrollerUI() {
 
 	// Reset game state
 	obstacles = [];
+	fallingCoins = [];
 	isJumping = false;
 	jumpVelocity = 0;
 	obstacleSpawnTimer = 0;
+	coinSpawnTimer = 0;
 	isGamePaused = false;
 	pauseTimer = 0;
 	isCollisionImmune = false;
@@ -1005,6 +1013,22 @@ function setupSidescrollerUI() {
 			frameRate: 12,
 			repeat: -1
 		});
+		
+		// Create coin falling animation with sequence 1, 2, 3, 4, 3, 2, 1, 2, 3, 4...
+		scene.anims.create({
+			key: 'coin_fall',
+			frames: [
+				{ key: 'coin1' },
+				{ key: 'coin2' },
+				{ key: 'coin3' },
+				{ key: 'coin4' },
+				{ key: 'coin3' },
+				{ key: 'coin2' }
+			],
+			frameRate: 15,
+			repeat: -1
+		});
+		
 		pesantShakeAnimationCreated = true;
 	}
 	
@@ -1181,12 +1205,34 @@ function updateSidescroller() {
 	
 	const scene = game.scene.scenes[0];
 	
+	// Update falling coins even when paused (during shake animation)
+	for (let i = fallingCoins.length - 1; i >= 0; i--) {
+		const coin = fallingCoins[i];
+		
+		// Simple constant falling motion
+		coin.y += 5; // Constant fall speed
+		
+		// Remove coins that have fallen off screen
+		if (coin.y > 650) {
+			coin.destroy();
+			fallingCoins.splice(i, 1);
+		}
+	}
+	
 	// Handle pause timer for pesantShake sequence
 	if (isGamePaused) {
 		pauseTimer--;
 		if (!flaxxxSound.isPlaying) {
 			flaxxxSound.play();
 		}
+		
+		// Continue spawning coins during shake sequence
+		coinSpawnTimer++;
+		// Spawn a coin every 40 frames (1.5 coins per second at 60fps)
+		if (coinSpawnTimer % 40 === 0) {
+			spawnFallingCoin(scene);
+		}
+		
 		if (pauseTimer <= 0) {
 			flaxxxSound.stop();
 			// Resume game after 3 seconds (180 frames at 60fps)
@@ -1404,6 +1450,26 @@ function spawnPesant(scene) {
 	obstacles.push(pesant);
 }
 
+function spawnFallingCoin(scene) {
+	if (!sidescrollerPlayer) return;
+	
+	// Create a falling coin sprite above the player's position (the shaking peasant)
+	const coin = scene.add.sprite(
+		sidescrollerPlayer.x + (Math.random() - 0.5) * 40, // Small random offset around player
+		sidescrollerPlayer.y - Math.random() * 30 - 20, // Spawn above the player
+		'coin1'
+	);
+	coin.setScale(0.2); // Make coins much smaller
+	coin.setDepth(150); // Ensure coins appear above everything including player
+	
+	// Start the coin falling animation
+	coin.anims.play('coin_fall', true);
+	
+	// No physics properties needed - handled in update loop
+	
+	fallingCoins.push(coin);
+}
+
 function checkCollision(player, obstacle) {
 	const playerBounds = player.getBounds();
 	const obstacleBounds = obstacle.getBounds();
@@ -1421,6 +1487,17 @@ function startPesantShakeSequence() {
 	// Immediately stop current animation and start pesantShake animation
 	sidescrollerPlayer.anims.stop();
 	sidescrollerPlayer.anims.play('pesantShake', true);
+	
+	// Start spawning coins during the shake sequence
+	const scene = game.scene.scenes[0];
+	if (scene) {
+		// Reset coin spawn timer for shake sequence
+		coinSpawnTimer = 0;
+		// Spawn initial coins immediately from the shaking peasant
+		for (let i = 0; i < 2; i++) {
+			setTimeout(() => spawnFallingCoin(scene), i * 100); // Spawn coins with 100ms delays
+		}
+	}
 }
 
 function endPesantShakeSequence() {
