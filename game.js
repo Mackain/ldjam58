@@ -1248,7 +1248,7 @@ function setupGizaUI() {
 	}
 
 	// Create greveOmNom sprite at bottom of screen
-	greveOmNomSprite = scene.add.sprite(400, 550, 'greveNom');
+	greveOmNomSprite = scene.add.sprite(400, 560, 'greveNom');
 	greveOmNomSprite.anims.play('greveOmNom', true);
 	
 	// Create HUD
