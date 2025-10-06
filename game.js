@@ -3,6 +3,14 @@ const config = {
 	type: Phaser.AUTO,
 	width: 800,
 	height: 600,
+	backgroundColor: '#000000',
+	scale: {
+        mode: Phaser.Scale.FIT,          // scale proportionally to fit
+        autoCenter: Phaser.Scale.CENTER_BOTH, // center horizontally & vertically
+        width: 800,                      // your logical width
+        height: 600,                     // your logical height
+    },
+
 	physics: {
 		default: 'arcade',
 		arcade: {
@@ -18,6 +26,7 @@ const config = {
 		create: create,
 		update: update
 	}
+	
 };
 
 const game = new Phaser.Game(config);
